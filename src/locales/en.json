@@ -1,0 +1,110 @@
+{
+  "common": {
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "project": "Project",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "home": {
+    "title": "IoT Monitoring System",
+    "subtitle": "Real-time temperature and humidity monitoring with ESP32 and DHT22",
+    "description": "Advanced remote sensing system using IoT technology for real-time environmental monitoring.",
+    "features": {
+      "title": "Key Features",
+      "realtime": "Real-time Data",
+      "wireless": "Wireless Communication",
+      "accurate": "High Accuracy",
+      "scalable": "Scalable"
+    },
+    "cta": {
+      "primary": "View Dashboard",
+      "secondary": "Learn More"
+    }
+  },
+  "dashboard": {
+    "title": "Monitoring Dashboard",
+    "subtitle": "Real-time data from DHT22 sensor",
+    "current": {
+      "title": "Current Reading",
+      "temperature": "Temperature",
+      "humidity": "Humidity",
+      "lastUpdate": "Last Update"
+    },
+    "history": {
+      "title": "History",
+      "temperature": "Temperature",
+      "humidity": "Humidity",
+      "timeRange": "Time Range"
+    },
+    "stats": {
+      "title": "Statistics",
+      "avgTemperature": "Average Temperature",
+      "avgHumidity": "Average Humidity",
+      "maxTemperature": "Max Temperature",
+      "minTemperature": "Min Temperature",
+      "maxHumidity": "Max Humidity",
+      "minHumidity": "Min Humidity",
+      "totalReadings": "Total Readings"
+    },
+    "device": {
+      "title": "Device Information",
+      "id": "Device ID",
+      "status": "Status",
+      "ip": "IP Address",
+      "signal": "Wi-Fi Signal",
+      "uptime": "Uptime"
+    }
+  },
+  "project": {
+    "title": "About the Project",
+    "description": "IoT monitoring system developed for demonstration of remote sensing technologies.",
+    "components": {
+      "title": "Components",
+      "esp32": "ESP32 - Microcontroller",
+      "dht22": "DHT22 - Temperature and Humidity Sensor",
+      "wifi": "Wi-Fi - Communication",
+      "server": "Web Server - Data Processing"
+    },
+    "architecture": {
+      "title": "Architecture",
+      "sensor": "DHT22 Sensor",
+      "microcontroller": "ESP32 Microcontroller",
+      "communication": "Wi-Fi Communication",
+      "server": "Flask Server",
+      "database": "SQLite Database",
+      "frontend": "React Web Interface"
+    },
+    "features": {
+      "title": "Features",
+      "realtime": "Real-time monitoring",
+      "history": "Data history",
+      "stats": "Advanced statistics",
+      "responsive": "Responsive interface",
+      "multilingual": "Multi-language support",
+      "themes": "Light/dark themes"
+    }
+  },
+  "errors": {
+    "network": "Server connection error",
+    "data": "Error loading data",
+    "device": "Device not found",
+    "sensor": "Sensor reading error"
+  }
+}

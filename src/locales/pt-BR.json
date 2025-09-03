@@ -1,0 +1,111 @@
+{
+  "common": {
+    "language": "Idioma",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Escuro",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior"
+  },
+  "navigation": {
+    "home": "Início",
+    "dashboard": "Painel",
+    "project": "Projeto",
+    "about": "Sobre",
+    "contact": "Contato"
+  },
+  "home": {
+    "title": "Sistema de Monitoramento IoT",
+    "subtitle": "Monitoramento em tempo real de temperatura e umidade com ESP32 e DHT22",
+    "description": "Sistema avançado de sensoriamento remoto utilizando tecnologia IoT para monitoramento ambiental em tempo real.",
+    "features": {
+      "title": "Características Principais",
+      "realtime": "Dados em Tempo Real",
+      "wireless": "Comunicação Sem Fio",
+      "accurate": "Alta Precisão",
+      "scalable": "Escalável"
+    },
+    "cta": {
+      "primary": "Ver Dashboard",
+      "secondary": "Saiba Mais"
+    }
+  },
+  "dashboard": {
+    "title": "Painel de Monitoramento",
+    "subtitle": "Dados em tempo real do sensor DHT22",
+    "current": {
+      "title": "Leitura Atual",
+      "temperature": "Temperatura",
+      "humidity": "Umidade",
+      "lastUpdate": "Última Atualização"
+    },
+    "history": {
+      "title": "Histórico",
+      "temperature": "Temperatura",
+      "humidity": "Umidade",
+      "timeRange": "Período"
+    },
+    "stats": {
+      "title": "Estatísticas",
+      "avgTemperature": "Temperatura Média",
+      "avgHumidity": "Umidade Média",
+      "maxTemperature": "Temperatura Máxima",
+      "minTemperature": "Temperatura Mínima",
+      "maxHumidity": "Umidade Máxima",
+      "minHumidity": "Umidade Mínima",
+      "totalReadings": "Total de Leituras"
+    },
+    "device": {
+      "title": "Informações do Dispositivo",
+      "id": "ID do Dispositivo",
+      "status": "Status",
+      "ip": "Endereço IP",
+      "signal": "Sinal Wi-Fi",
+      "uptime": "Tempo Ativo"
+    }
+  },
+  "project": {
+    "title": "Sobre o Projeto",
+    "description": "Sistema de monitoramento IoT desenvolvido para demonstração de tecnologias de sensoriamento remoto.",
+    "components": {
+      "title": "Componentes",
+      "esp32": "ESP32 - Microcontrolador",
+      "dht22": "DHT22 - Sensor de Temperatura e Umidade",
+      "wifi": "Wi-Fi - Comunicação",
+      "server": "Servidor Web - Processamento de Dados"
+    },
+    "architecture": {
+      "title": "Arquitetura",
+      "sensor": "Sensor DHT22",
+      "microcontroller": "Microcontrolador ESP32",
+      "communication": "Comunicação Wi-Fi",
+      "server": "Servidor Flask",
+      "database": "Banco de Dados SQLite",
+      "frontend": "Interface Web React"
+    },
+    "features": {
+      "title": "Funcionalidades",
+      "realtime": "Monitoramento em tempo real",
+      "history": "Histórico de dados",
+      "stats": "Estatísticas avançadas",
+      "responsive": "Interface responsiva",
+      "multilingual": "Suporte a múltiplos idiomas",
+      "themes": "Temas claro/escuro"
+    }
+  },
+  "errors": {
+    "network": "Erro de conexão com o servidor",
+    "data": "Erro ao carregar dados",
+    "device": "Dispositivo não encontrado",
+    "sensor": "Erro na leitura do sensor",
+    "stats": "Erro ao carregar estatísticas"
+  }
+}

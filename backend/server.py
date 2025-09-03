@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""
+Servidor Flask para receber dados do DHT22 ESP32
+API + Dashboard para visualização em tempo real
+"""
+
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+from datetime import datetime, timedelta
+import json
+import sqlite3
+import os
+from pathlib import Path
+
+app = Flask(__name__)
+CORS(app)  # Habilitar CORS para todas as rotas
+
+# Configurações
+DATABASE_FILE = "dht22_data.db"
+DASHBOARD_FILE = Path(__file__).parent / "dashboard" / "index.html"
+MAX_RECORDS = 1000  # Máximo de registros no banco
+
+# Criar banco de dados SQLite
+def init_database():
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sensor_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            device_id TEXT NOT NULL,
+            timestamp INTEGER NOT NULL,
+            sensor_type TEXT NOT NULL,
+            temperature REAL,
+            humidity REAL,
+            temperature_f REAL,
+            wifi_rssi INTEGER,
+            wifi_ip TEXT,
+            uptime_seconds INTEGER,
+            reading_number INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Inicializar banco
+init_database()
+
+@app.route('/')
+def index():
+    """Servir dashboard HTML"""
+    return send_file(str(DASHBOARD_FILE))
+
+@app.route('/api/ingest', methods=['POST'])
+def ingest_data():
+    """Receber dados do ESP32"""
+    try:
+        data = request.get_json()
+        
+        # Validar dados obrigatórios
+        required_fields = ['device_id', 'timestamp', 'sensor', 'data']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Campo obrigatório ausente: {field}'}), 400
+        
+        # Extrair dados
+        device_id = data['device_id']
+        timestamp = data['timestamp']
+        sensor_type = data['sensor']
+        sensor_data = data['data']
+        metadata = data.get('metadata', {})
+        reading_number = data.get('reading_number', 0)
+        
+        # Validar dados do sensor
+        if 'temperature' not in sensor_data or 'humidity' not in sensor_data:
+            return jsonify({'error': 'Dados de temperatura e umidade obrigatórios'}), 400
+        
+        temperature = sensor_data['temperature']
+        humidity = sensor_data['humidity']
+        temperature_f = sensor_data.get('temperature_f', temperature * 9/5 + 32)
+        
+        # Salvar no banco
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO sensor_data 
+            (device_id, timestamp, sensor_type, temperature, humidity, temperature_f,
+             wifi_rssi, wifi_ip, uptime_seconds, reading_number)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            device_id, timestamp, sensor_type, temperature, humidity, temperature_f,
+            metadata.get('wifi_rssi'), metadata.get('wifi_ip'), 
+            metadata.get('uptime_seconds'), reading_number
+        ))
+        conn.commit()
+        conn.close()
+        
+        # Limpar registros antigos se necessário
+        cleanup_old_records()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Dados recebidos com sucesso',
+            'timestamp': datetime.now().isoformat()
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+
+@app.route('/api/latest/<device_id>')
+def get_latest(device_id):
+    """Obter dados mais recentes de um dispositivo"""
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM sensor_data 
+            WHERE device_id = ? 
+            ORDER BY timestamp DESC 
+            LIMIT 1
+        ''', (device_id,))
+        
+        row = cursor.fetchone()
+        conn.close()
+        
+        if row:
+            return jsonify({
+                'device_id': row[1],
+                'timestamp': row[2],
+                'sensor_type': row[3],
+                'data': {
+                    'temperature': row[4],
+                    'humidity': row[5],
+                    'temperature_f': row[6]
+                },
+                'metadata': {
+                    'wifi_rssi': row[7],
+                    'wifi_ip': row[8],
+                    'uptime_seconds': row[9]
+                },
+                'reading_number': row[10],
+                'created_at': row[11]
+            })
+        else:
+            return jsonify({'error': 'Nenhum dado encontrado'}), 404
+            
+    except Exception as e:
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+
+@app.route('/api/history/<device_id>')
+def get_history(device_id):
+    """Obter histórico de dados de um dispositivo"""
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        limit = min(limit, 100)  # Máximo 100 registros
+        
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM sensor_data 
+            WHERE device_id = ? 
+            ORDER BY timestamp DESC 
+            LIMIT ?
+        ''', (device_id, limit))
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        data = []
+        for row in rows:
+            data.append({
+                'device_id': row[1],
+                'timestamp': row[2],
+                'sensor_type': row[3],
+                'data': {
+                    'temperature': row[4],
+                    'humidity': row[5],
+                    'temperature_f': row[6]
+                },
+                'metadata': {
+                    'wifi_rssi': row[7],
+                    'wifi_ip': row[8],
+                    'uptime_seconds': row[9]
+                },
+                'reading_number': row[10],
+                'created_at': row[11]
+            })
+        
+        return jsonify(data)
+        
+    except Exception as e:
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+
+@app.route('/api/stats/<device_id>')
+def get_stats(device_id):
+    """Obter estatísticas de um dispositivo"""
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        
+        # Estatísticas gerais
+        cursor.execute('''
+            SELECT 
+                COUNT(*) as total_readings,
+                AVG(temperature) as avg_temperature,
+                AVG(humidity) as avg_humidity,
+                MIN(temperature) as min_temperature,
+                MAX(temperature) as max_temperature,
+                MIN(humidity) as min_humidity,
+                MAX(humidity) as max_humidity,
+                MIN(timestamp) as first_reading,
+                MAX(timestamp) as last_reading
+            FROM sensor_data 
+            WHERE device_id = ?
+        ''', (device_id,))
+        
+        stats = cursor.fetchone()
+        conn.close()
+        
+        if stats[0] > 0:
+            return jsonify({
+                'device_id': device_id,
+                'total_readings': stats[0],
+                'avg_temperature': round(stats[1], 2),
+                'avg_humidity': round(stats[2], 2),
+                'min_temperature': stats[3],
+                'max_temperature': stats[4],
+                'min_humidity': stats[5],
+                'max_humidity': stats[6],
+                'first_reading': stats[7],
+                'last_reading': stats[8],
+                'uptime_seconds': stats[8] - stats[7] if stats[8] and stats[7] else 0
+            })
+        else:
+            return jsonify({'error': 'Nenhum dado encontrado'}), 404
+            
+    except Exception as e:
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+
+def cleanup_old_records():
+    """Limpar registros antigos mantendo apenas os mais recentes"""
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        
+        # Contar registros
+        cursor.execute('SELECT COUNT(*) FROM sensor_data')
+        count = cursor.fetchone()[0]
+        
+        if count > MAX_RECORDS:
+            # Manter apenas os registros mais recentes
+            cursor.execute('''
+                DELETE FROM sensor_data 
+                WHERE id NOT IN (
+                    SELECT id FROM sensor_data 
+                    ORDER BY timestamp DESC 
+                    LIMIT ?
+                )
+            ''', (MAX_RECORDS,))
+            
+            conn.commit()
+            print(f"Limpeza: removidos {count - MAX_RECORDS} registros antigos")
+        
+        conn.close()
+        
+    except Exception as e:
+        print(f"Erro na limpeza: {e}")
+
+if __name__ == '__main__':
+    print("=== SERVIDOR DHT22 ESP32 ===")
+    print(f"Dashboard: http://localhost:8080")
+    print(f"API: http://localhost:8080/api/ingest")
+    print(f"Banco de dados: {DATABASE_FILE}")
+    print("=" * 30)
+    
+    app.run(host='0.0.0.0', port=8080, debug=True)
