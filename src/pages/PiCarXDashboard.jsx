@@ -17,8 +17,6 @@ import {
   Opacity,
   PhoneAndroid,
   AccessTime,
-  TrendingUp,
-  TrendingDown,
   Home,
   Dashboard,
 } from '@mui/icons-material';
@@ -55,8 +53,8 @@ const PiCarXDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_BASE_URL = 'http://localhost:8080';
-  const DEVICE_ID = 'PiCarX-5G-Publisher';
+  const API_BASE_URL = 'http://200.137.220.50:8080';
+  const DEVICE_ID = 'PiCarX-RM520N-DHT22';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -113,11 +111,12 @@ const PiCarXDashboard = () => {
 
   const chartData = {
     labels: history.slice(-20).reverse().map((item, index) => {
-      // Converter timestamp para formato de tempo HH:MM:SS
+      // Converter timestamp Unix para formato de tempo HH:MM:SS
       const timestamp = item.timestamp;
-      const hours = Math.floor(timestamp / 3600);
-      const minutes = Math.floor((timestamp % 3600) / 60);
-      const seconds = timestamp % 60;
+      const date = new Date(timestamp * 1000); // Converter para milissegundos
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      const seconds = date.getSeconds();
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }),
     datasets: [
@@ -488,7 +487,29 @@ const PiCarXDashboard = () => {
                     Módulo 5G
                   </Typography>
                   <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
-                    FN990A40
+                    {'RM520N-GL'}
+                  </Typography>
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={3}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    Conexão
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
+                    {data.metadata?.connection_type || '5G'}
+                  </Typography>
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={3}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    GPIO Pin
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
+                    {data.metadata?.gpio_pin || '11'}
                   </Typography>
                 </Box>
               </Grid>

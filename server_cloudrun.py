@@ -1,63 +1,122 @@
 #!/usr/bin/env python3
 """
-Servidor Flask para receber dados do DHT22 ESP32
-API + Dashboard para visualização em tempo real
-Suporte para módulo Quectel RM520N-GL (5G) e pino 11 (GPIO17)
+Servidor Flask para Google Cloud Run
+Recebe dados do DHT22 via módulo 5G
 """
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime
 import sqlite3
-from pathlib import Path
+import os
+import logging
+import tempfile
 
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para todas as rotas
 
-# Configurações
-DATABASE_FILE = "dht22_data.db"
-DASHBOARD_FILE = Path(__file__).parent / "dashboard" / "index.html"
-MAX_RECORDS = 10  # Máximo de registros no banco
+# Configurações para Cloud Run
+PORT = int(os.environ.get('PORT', 8080))
+DATABASE_FILE = os.environ.get('DATABASE_FILE', '/tmp/dht22_data.db')
+MAX_RECORDS = int(os.environ.get('MAX_RECORDS', 1000))
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Criar banco de dados SQLite
 def init_database():
-    conn = sqlite3.connect(DATABASE_FILE)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sensor_data (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            device_id TEXT NOT NULL,
-            timestamp INTEGER NOT NULL,
-            sensor_type TEXT NOT NULL,
-            temperature REAL,
-            humidity REAL,
-            temperature_f REAL,
-            wifi_rssi INTEGER,
-            wifi_ip TEXT,
-            uptime_seconds INTEGER,
-            reading_number INTEGER,
-            module_type TEXT DEFAULT 'ESP32',
-            connection_type TEXT DEFAULT 'Wi-Fi',
-            gpio_pin INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    """Inicializa o banco de dados"""
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS sensor_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                device_id TEXT NOT NULL,
+                timestamp INTEGER NOT NULL,
+                sensor_type TEXT NOT NULL,
+                temperature REAL,
+                humidity REAL,
+                temperature_f REAL,
+                wifi_rssi INTEGER,
+                wifi_ip TEXT,
+                uptime_seconds INTEGER,
+                reading_number INTEGER,
+                module_type TEXT DEFAULT 'ESP32',
+                connection_type TEXT DEFAULT 'Wi-Fi',
+                gpio_pin INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Criar índices para melhor performance
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_device_timestamp 
+            ON sensor_data(device_id, timestamp DESC)
+        ''')
+        
+        conn.commit()
+        conn.close()
+        logger.info(f"Banco de dados inicializado: {DATABASE_FILE}")
+        
+    except Exception as e:
+        logger.error(f"Erro ao inicializar banco de dados: {e}")
+        raise
 
 # Inicializar banco
 init_database()
 
 @app.route('/')
 def index():
-    """Servir dashboard HTML"""
-    return send_file(str(DASHBOARD_FILE))
+    """Página inicial"""
+    return jsonify({
+        'message': 'DHT22 Data Server - Cloud Run',
+        'version': '1.0.0',
+        'status': 'running',
+        'environment': 'Google Cloud Run',
+        'endpoints': {
+            'ingest': '/api/ingest',
+            'latest': '/api/latest/<device_id>',
+            'history': '/api/history/<device_id>',
+            'stats': '/api/stats/<device_id>',
+            'health': '/api/health'
+        }
+    })
+
+@app.route('/api/health')
+def health_check():
+    """Endpoint de health check"""
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM sensor_data')
+        count = cursor.fetchone()[0]
+        conn.close()
+        
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'database_records': count,
+            'version': '1.0.0',
+            'environment': 'Google Cloud Run',
+            'port': PORT
+        })
+    except Exception as e:
+        logger.error(f"Erro no health check: {e}")
+        return jsonify({'status': 'unhealthy', 'error': str(e)}), 500
 
 @app.route('/api/ingest', methods=['POST'])
 def ingest_data():
     """Receber dados do DHT22"""
     try:
         data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'Dados JSON obrigatórios'}), 400
         
         # Detectar formato dos dados (novo ou antigo)
         if 'sensor' in data and 'data' in data:
@@ -100,12 +159,15 @@ def ingest_data():
         else:
             return jsonify({'error': 'Formato de dados não reconhecido'}), 400
         
-        # Log simples no terminal para confirmação local
-        try:
-            print(f"Leitura recebida [{device_id}] -> temperatura: {temperature:.1f}º e umidade: {humidity:.1f}%")
-        except Exception:
-            # Evitar que qualquer erro de formatação impeça o fluxo da API
-            pass
+        # Validar dados
+        if not device_id or not timestamp:
+            return jsonify({'error': 'device_id e timestamp obrigatórios'}), 400
+        
+        if not isinstance(temperature, (int, float)) or not isinstance(humidity, (int, float)):
+            return jsonify({'error': 'Temperatura e umidade devem ser números'}), 400
+        
+        # Log da leitura recebida
+        logger.info(f"Leitura recebida [{device_id}] -> temperatura: {temperature:.1f}°C e umidade: {humidity:.1f}%")
         
         # Salvar no banco
         conn = sqlite3.connect(DATABASE_FILE)
@@ -131,10 +193,12 @@ def ingest_data():
         return jsonify({
             'status': 'success',
             'message': 'Dados recebidos com sucesso',
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'environment': 'Google Cloud Run'
         }), 200
         
     except Exception as e:
+        logger.error(f"Erro ao processar dados: {e}")
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
 
 @app.route('/api/latest/<device_id>')
@@ -172,12 +236,14 @@ def get_latest(device_id):
                     'gpio_pin': row[14] if len(row) > 14 else None
                 },
                 'reading_number': row[10],
-                'created_at': row[11]
+                'created_at': row[11],
+                'environment': 'Google Cloud Run'
             })
         else:
             return jsonify({'error': 'Nenhum dado encontrado'}), 404
             
     except Exception as e:
+        logger.error(f"Erro ao buscar dados mais recentes: {e}")
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
 
 @app.route('/api/history/<device_id>')
@@ -219,12 +285,14 @@ def get_history(device_id):
                     'gpio_pin': row[14] if len(row) > 14 else None
                 },
                 'reading_number': row[10],
-                'created_at': row[11]
+                'created_at': row[11],
+                'environment': 'Google Cloud Run'
             })
         
         return jsonify(data)
         
     except Exception as e:
+        logger.error(f"Erro ao buscar histórico: {e}")
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
 
 @app.route('/api/stats/<device_id>')
@@ -265,12 +333,14 @@ def get_stats(device_id):
                 'max_humidity': stats[6],
                 'first_reading': stats[7],
                 'last_reading': stats[8],
-                'uptime_seconds': stats[8] - stats[7] if stats[8] and stats[7] else 0
+                'uptime_seconds': stats[8] - stats[7] if stats[8] and stats[7] else 0,
+                'environment': 'Google Cloud Run'
             })
         else:
             return jsonify({'error': 'Nenhum dado encontrado'}), 404
             
     except Exception as e:
+        logger.error(f"Erro ao buscar estatísticas: {e}")
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
 
 def cleanup_old_records():
@@ -295,18 +365,19 @@ def cleanup_old_records():
             ''', (MAX_RECORDS,))
             
             conn.commit()
-            print(f"Limpeza: removidos {count - MAX_RECORDS} registros antigos")
+            logger.info(f"Limpeza: removidos {count - MAX_RECORDS} registros antigos")
         
         conn.close()
         
     except Exception as e:
-        print(f"Erro na limpeza: {e}")
+        logger.error(f"Erro na limpeza: {e}")
 
 if __name__ == '__main__':
-    print("=== SERVIDOR DHT22 ESP32 ===")
-    print(f"Dashboard: http://localhost:8080")
-    print(f"API: http://localhost:8080/api/ingest")
-    print(f"Banco de dados: {DATABASE_FILE}")
-    print("=" * 30)
+    logger.info("=== SERVIDOR DHT22 ESP32 (GOOGLE CLOUD RUN) ===")
+    logger.info(f"Porta: {PORT}")
+    logger.info(f"API: http://0.0.0.0:{PORT}/api/ingest")
+    logger.info(f"Health: http://0.0.0.0:{PORT}/api/health")
+    logger.info(f"Banco de dados: {DATABASE_FILE}")
+    logger.info("=" * 50)
     
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=PORT, debug=False)

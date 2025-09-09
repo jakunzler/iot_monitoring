@@ -53,7 +53,7 @@ const ESP32Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_BASE_URL = 'http://localhost:8080';
+  const API_BASE_URL = 'http://200.137.220.50:8080';
   const DEVICE_ID = 'ESP32-DHT22-Publisher';
 
   useEffect(() => {

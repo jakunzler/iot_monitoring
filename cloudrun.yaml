@@ -1,0 +1,57 @@
+# cloudrun.yaml - Configuração do Google Cloud Run
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: dht22-server
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/memory: "512Mi"
+        run.googleapis.com/cpu: "1"
+        run.googleapis.com/max-scale: "10"
+        run.googleapis.com/min-scale: "0"
+    spec:
+      containerConcurrency: 1000
+      timeoutSeconds: 300
+      containers:
+      - image: gcr.io/PROJECT_ID/dht22-server:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        - name: FLASK_ENV
+          value: "production"
+        - name: DATABASE_FILE
+          value: "/tmp/dht22_data.db"
+        - name: MAX_RECORDS
+          value: "1000"
+        resources:
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+          requests:
+            cpu: "0.5"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3

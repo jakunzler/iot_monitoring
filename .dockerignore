@@ -1,0 +1,71 @@
+# .dockerignore para Cloud Run
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+.vscode
+.idea
+*.log
+dist
+build
+.DS_Store
+Thumbs.db
+
+# Arquivos de desenvolvimento
+*.md
+*.txt
+!requirements.txt
+
+# Arquivos de teste
+test_*
+*_test.py
+tests/
+
+# Arquivos de configuração local
+.env.local
+.env.development
+.env.production
+
+# Arquivos temporários
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Arquivos de backup
+*.bak
+*.backup
+*.old
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Arquivos de IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Arquivos de log
+*.log
+logs/
+
+# Arquivos de cache
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/

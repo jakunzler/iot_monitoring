@@ -244,7 +244,7 @@ class RM520NConfigurator:
             print(f"✗ Erro no teste de conectividade: {e}")
             return False
     
-    def send_test_data(self, api_url="http://localhost:8080/api/ingest"):
+    def send_test_data(self, api_url="200.137.220.50:8080/api/ingest"):
         """Enviar dados de teste via 5G"""
         print(f"\n=== ENVIO DE DADOS VIA 5G ===")
         
