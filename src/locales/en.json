@@ -101,10 +101,19 @@
       "themes": "Light/dark themes"
     }
   },
+  "deviceSelector": {
+    "title": "Select Data Source",
+    "subtitle": "Choose the device for monitoring:",
+    "info": {
+      "title": "Two Implemented Projects",
+      "description": "This system supports two different projects: one with ESP32 using Wi-Fi and another with PiCarX using 5G FN990A40 module. Both use the same DHT22 sensor for temperature and humidity measurement."
+    }
+  },
   "errors": {
     "network": "Server connection error",
     "data": "Error loading data",
     "device": "Device not found",
-    "sensor": "Sensor reading error"
+    "sensor": "Sensor reading error",
+    "stats": "Error loading statistics"
   }
 }

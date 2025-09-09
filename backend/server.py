@@ -18,7 +18,7 @@ CORS(app)  # Habilitar CORS para todas as rotas
 # Configurações
 DATABASE_FILE = "dht22_data.db"
 DASHBOARD_FILE = Path(__file__).parent / "dashboard" / "index.html"
-MAX_RECORDS = 1000  # Máximo de registros no banco
+MAX_RECORDS = 10  # Máximo de registros no banco
 
 # Criar banco de dados SQLite
 def init_database():
@@ -57,27 +57,50 @@ def ingest_data():
     try:
         data = request.get_json()
         
-        # Validar dados obrigatórios
-        required_fields = ['device_id', 'timestamp', 'sensor', 'data']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Campo obrigatório ausente: {field}'}), 400
+        # Detectar formato dos dados (novo ou antigo)
+        if 'sensor' in data and 'data' in data:
+            # Formato novo: dados aninhados
+            device_id = data['device_id']
+            timestamp = data['timestamp']
+            sensor_type = data['sensor']
+            sensor_data = data['data']
+            metadata = data.get('metadata', {})
+            reading_number = data.get('reading_number', 0)
+            
+            # Validar dados do sensor
+            if 'temperature' not in sensor_data or 'humidity' not in sensor_data:
+                return jsonify({'error': 'Dados de temperatura e umidade obrigatórios'}), 400
+            
+            temperature = sensor_data['temperature']
+            humidity = sensor_data['humidity']
+            temperature_f = sensor_data.get('temperature_f', temperature * 9/5 + 32)
+            
+        elif 'sensor_type' in data and 'temperature' in data:
+            # Formato antigo: dados no nível raiz
+            device_id = data['device_id']
+            timestamp = data['timestamp']
+            sensor_type = data['sensor_type']
+            temperature = data['temperature']
+            humidity = data['humidity']
+            temperature_f = data.get('temperature_f', temperature * 9/5 + 32)
+            reading_number = data.get('reading_number', 0)
+            
+            # Criar metadata a partir dos campos antigos
+            metadata = {
+                'wifi_rssi': data.get('wifi_rssi'),
+                'wifi_ip': data.get('wifi_ip'),
+                'uptime_seconds': data.get('uptime_seconds', timestamp)
+            }
+            
+        else:
+            return jsonify({'error': 'Formato de dados não reconhecido'}), 400
         
-        # Extrair dados
-        device_id = data['device_id']
-        timestamp = data['timestamp']
-        sensor_type = data['sensor']
-        sensor_data = data['data']
-        metadata = data.get('metadata', {})
-        reading_number = data.get('reading_number', 0)
-        
-        # Validar dados do sensor
-        if 'temperature' not in sensor_data or 'humidity' not in sensor_data:
-            return jsonify({'error': 'Dados de temperatura e umidade obrigatórios'}), 400
-        
-        temperature = sensor_data['temperature']
-        humidity = sensor_data['humidity']
-        temperature_f = sensor_data.get('temperature_f', temperature * 9/5 + 32)
+        # Log simples no terminal para confirmação local
+        try:
+            print(f"Leitura recebida [{device_id}] -> temperatura: {temperature:.1f}º e umidade: {humidity:.1f}%")
+        except Exception:
+            # Evitar que qualquer erro de formatação impeça o fluxo da API
+            pass
         
         # Salvar no banco
         conn = sqlite3.connect(DATABASE_FILE)
@@ -89,7 +112,7 @@ def ingest_data():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             device_id, timestamp, sensor_type, temperature, humidity, temperature_f,
-            metadata.get('wifi_rssi'), metadata.get('wifi_ip'), 
+            metadata.get('wifi_rssi'), metadata.get('wifi_ip'),
             metadata.get('uptime_seconds'), reading_number
         ))
         conn.commit()

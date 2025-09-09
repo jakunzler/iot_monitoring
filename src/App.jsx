@@ -5,6 +5,8 @@ import { AppProvider } from './contexts/AppContext';
 import Navigation from './components/Navigation';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
+import ESP32Dashboard from './pages/ESP32Dashboard';
+import PiCarXDashboard from './pages/PiCarXDashboard';
 import Project from './pages/Project';
 
 function App() {
@@ -18,6 +20,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/esp32" element={<ESP32Dashboard />} />
+              <Route path="/dashboard/picarx" element={<PiCarXDashboard />} />
               <Route path="/project" element={<Project />} />
             </Routes>
           </Box>
