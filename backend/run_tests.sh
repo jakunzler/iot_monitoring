@@ -51,11 +51,14 @@ echo "1. Teste completo (todos os testes)"
 echo "2. Configurar módulo RM520N-GL"
 echo "3. Testar pino 11 com RM520N-GL"
 echo "4. Testar pino 11 com DHT11"
-echo "5. Validar fluxo completo"
-echo "6. Sair"
+echo "5. Testar pino 11 com DHT22 + RM520N-GL"
+echo "6. Configurar RM520N-GL + DHT22"
+echo "7. Validar fluxo completo"
+echo "8. Teste fluxo completo com 5G funcionando"
+echo "9. Sair"
 echo ""
 
-read -p "Digite sua escolha (1-6): " choice
+read -p "Digite sua escolha (1-9): " choice
 
 case $choice in
     1)
@@ -63,6 +66,7 @@ case $choice in
         run_test "Configuração RM520N-GL" "configure_rm520n.py"
         run_test "Teste Pino 11 + RM520N-GL" "test_pin11_rm520n.py"
         run_test "Teste Pino 11 + DHT11" "test_pin11_dht11.py"
+        run_test "Teste Pino 11 + DHT22 + RM520N-GL" "test_dht22_pin11_rm520n.py"
         run_test "Validação Fluxo Completo" "validate_complete_flow.py"
         ;;
     2)
@@ -75,9 +79,19 @@ case $choice in
         run_test "Teste Pino 11 + DHT11" "test_pin11_dht11.py"
         ;;
     5)
-        run_test "Validação Fluxo Completo" "validate_complete_flow.py"
+        run_test "Teste Pino 11 + DHT22 + RM520N-GL" "test_dht22_pin11_rm520n.py"
         ;;
     6)
+        run_test "Configurar RM520N-GL + DHT22" "setup_rm520n_dht22.py"
+        ;;
+    7)
+        run_test "Validação Fluxo Completo" "validate_complete_flow.py"
+        ;;
+    8)
+        echo "Executando teste de fluxo completo com 5G..."
+        run_test "Fluxo completo com 5G" "test_complete_flow_5g.py"
+        ;;
+    9)
         echo "Saindo..."
         exit 0
         ;;

@@ -2,6 +2,7 @@
 """
 Servidor Flask para receber dados do DHT22 ESP32
 API + Dashboard para visualização em tempo real
+Suporte para módulo Quectel RM520N-GL (5G) e pino 11 (GPIO17)
 """
 
 from flask import Flask, request, jsonify, send_file
@@ -37,6 +38,9 @@ def init_database():
             wifi_ip TEXT,
             uptime_seconds INTEGER,
             reading_number INTEGER,
+            module_type TEXT DEFAULT 'ESP32',
+            connection_type TEXT DEFAULT 'Wi-Fi',
+            gpio_pin INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -53,7 +57,7 @@ def index():
 
 @app.route('/api/ingest', methods=['POST'])
 def ingest_data():
-    """Receber dados do ESP32"""
+    """Receber dados do DHT22"""
     try:
         data = request.get_json()
         
@@ -89,7 +93,10 @@ def ingest_data():
             metadata = {
                 'wifi_rssi': data.get('wifi_rssi'),
                 'wifi_ip': data.get('wifi_ip'),
-                'uptime_seconds': data.get('uptime_seconds', timestamp)
+                'uptime_seconds': data.get('uptime_seconds', timestamp),
+                'module_type': data.get('module_type', 'ESP32'),
+                'connection_type': data.get('connection_type', 'Wi-Fi'),
+                'gpio_pin': data.get('gpio_pin')
             }
             
         else:
@@ -108,12 +115,14 @@ def ingest_data():
         cursor.execute('''
             INSERT INTO sensor_data 
             (device_id, timestamp, sensor_type, temperature, humidity, temperature_f,
-             wifi_rssi, wifi_ip, uptime_seconds, reading_number)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             wifi_rssi, wifi_ip, uptime_seconds, reading_number, module_type, connection_type, gpio_pin)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             device_id, timestamp, sensor_type, temperature, humidity, temperature_f,
             metadata.get('wifi_rssi'), metadata.get('wifi_ip'),
-            metadata.get('uptime_seconds'), reading_number
+            metadata.get('uptime_seconds'), reading_number,
+            metadata.get('module_type', 'ESP32'), metadata.get('connection_type', 'Wi-Fi'),
+            metadata.get('gpio_pin')
         ))
         conn.commit()
         conn.close()
@@ -159,7 +168,10 @@ def get_latest(device_id):
                 'metadata': {
                     'wifi_rssi': row[7],
                     'wifi_ip': row[8],
-                    'uptime_seconds': row[9]
+                    'uptime_seconds': row[9],
+                    'module_type': row[12] if len(row) > 12 else 'ESP32',
+                    'connection_type': row[13] if len(row) > 13 else 'Wi-Fi',
+                    'gpio_pin': row[14] if len(row) > 14 else None
                 },
                 'reading_number': row[10],
                 'created_at': row[11]
@@ -203,7 +215,10 @@ def get_history(device_id):
                 'metadata': {
                     'wifi_rssi': row[7],
                     'wifi_ip': row[8],
-                    'uptime_seconds': row[9]
+                    'uptime_seconds': row[9],
+                    'module_type': row[12] if len(row) > 12 else 'ESP32',
+                    'connection_type': row[13] if len(row) > 13 else 'Wi-Fi',
+                    'gpio_pin': row[14] if len(row) > 14 else None
                 },
                 'reading_number': row[10],
                 'created_at': row[11]
