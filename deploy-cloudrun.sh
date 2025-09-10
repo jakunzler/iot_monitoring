@@ -4,7 +4,7 @@
 set -e
 
 # Configurações
-PROJECT_ID="your-project-id"  # Substitua pelo seu Project ID
+PROJECT_ID="steel-climber-466411-d1"
 SERVICE_NAME="dht22-server"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
@@ -64,7 +64,7 @@ gcloud run deploy ${SERVICE_NAME} \
     --min-instances 0 \
     --timeout 300 \
     --concurrency 1000 \
-    --set-env-vars "PORT=8080,FLASK_ENV=production,DATABASE_FILE=/tmp/dht22_data.db,MAX_RECORDS=1000"
+    --set-env-vars "PORT=8080,FLASK_ENV=production,DATABASE_FILE=dht22_data.db,MAX_RECORDS=100"
 
 # Obter URL do serviço
 SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --region=${REGION} --format='value(status.url)')

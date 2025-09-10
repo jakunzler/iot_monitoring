@@ -3,7 +3,7 @@ import os, time, socket, requests, board, adafruit_dht
 
 # === Configurações via variáveis de ambiente (ou valores padrão) ===
 PUBLISH_URL   = os.getenv("PUBLISH_URL", "http://127.0.0.1:8080/api/ingest")
-DEVICE_ID     = os.getenv("DEVICE_ID", "PiCarX-DHT22-Publisher")
+DEVICE_ID     = os.getenv("DEVICE_ID", "PiCarX-RM520N-DHT22")
 READ_INTERVAL = float(os.getenv("READ_INTERVAL_S", "2.5"))  # segundos
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT_S", "5"))
 

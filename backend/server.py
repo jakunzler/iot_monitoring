@@ -227,6 +227,37 @@ def get_history(device_id):
     except Exception as e:
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
 
+@app.route('/api/clear', methods=['POST'])
+def clear_database():
+    """Limpar todos os registros do banco de dados"""
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        
+        # Contar registros antes de limpar
+        cursor.execute('SELECT COUNT(*) FROM sensor_data')
+        count_before = cursor.fetchone()[0]
+        
+        # Limpar todos os registros
+        cursor.execute('DELETE FROM sensor_data')
+        conn.commit()
+        
+        # Resetar o auto-increment
+        cursor.execute('DELETE FROM sqlite_sequence WHERE name="sensor_data"')
+        conn.commit()
+        
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Banco de dados limpo com sucesso. {count_before} registros removidos.',
+            'records_removed': count_before,
+            'timestamp': datetime.now().isoformat()
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Erro ao limpar banco: {str(e)}'}), 500
+
 @app.route('/api/stats/<device_id>')
 def get_stats(device_id):
     """Obter estatísticas de um dispositivo"""

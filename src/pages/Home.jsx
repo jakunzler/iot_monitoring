@@ -32,7 +32,7 @@ const Home = () => {
     {
       icon: <Wifi sx={{ fontSize: 40 }} />,
       title: t('home.features.wireless'),
-      description: 'Comunicação sem fio via Wi-Fi para máxima flexibilidade',
+      description: 'Comunicação sem fio via Wi-Fi e 5G para máxima flexibilidade',
     },
     {
       icon: <Speed sx={{ fontSize: 40 }} />,
@@ -170,7 +170,7 @@ const Home = () => {
             Tecnologia IoT Avançada
           </Typography>
           <Typography variant="body1" sx={{ mb: 3 }}>
-            Sistema de monitoramento baseado em ESP32 e DHT22 para aplicações industriais e residenciais
+            Sistema de monitoramento baseado em ESP32, PiCarX, 5G e DHT22 para aplicações industriais e residenciais
           </Typography>
           <Button
             variant="contained"

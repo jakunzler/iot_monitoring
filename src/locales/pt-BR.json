@@ -24,7 +24,7 @@
   },
   "home": {
     "title": "Sistema de Monitoramento IoT",
-    "subtitle": "Monitoramento em tempo real de temperatura e umidade com ESP32 e DHT22",
+    "subtitle": "Monitoramento em tempo real de temperatura e umidade com Raspberry Pi CarX, RM520N, ESP32 e DHT22",
     "description": "Sistema avançado de sensoriamento remoto utilizando tecnologia IoT para monitoramento ambiental em tempo real.",
     "features": {
       "title": "Características Principais",
@@ -78,14 +78,18 @@
     "components": {
       "title": "Componentes",
       "esp32": "ESP32 - Microcontrolador",
+      "picarx": "PiCarX - Raspberry Pi CarX",
+      "rm520n": "RM520N - Módulo 5G",
       "dht22": "DHT22 - Sensor de Temperatura e Umidade",
       "wifi": "Wi-Fi - Comunicação",
       "server": "Servidor Web - Processamento de Dados"
     },
     "architecture": {
       "title": "Arquitetura",
+      "picarx": "PiCarX - Raspberry Pi CarX",
+      "rm520n": "RM520N - Módulo 5G",
       "sensor": "Sensor DHT22",
-      "microcontroller": "Microcontrolador ESP32",
+      "microcontroller": "Raspberry Pi 4",
       "communication": "Comunicação Wi-Fi",
       "server": "Servidor Flask",
       "database": "Banco de Dados SQLite",

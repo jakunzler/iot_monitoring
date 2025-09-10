@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container,
   Typography,
@@ -6,7 +6,6 @@ import {
   Grid,
   Card,
   CardContent,
-  CircularProgress,
   Alert,
   Chip,
   Breadcrumbs,
@@ -33,6 +32,11 @@ import {
 } from 'chart.js';
 import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
+import { useRealtimeData } from '../hooks/useRealtimeData';
+import { LoadingSpinner, CardLoading, ChartLoading } from '../components/LoadingComponents';
+import { ConnectionStatus, RealtimeIndicator } from '../components/ConnectionStatus';
+import { ClearDatabaseButton } from '../components/ClearDatabaseButton';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 ChartJS.register(
   CategoryScale,
@@ -47,492 +51,513 @@ ChartJS.register(
 const PiCarXDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const API_BASE_URL = 'http://200.137.220.50:8080';
   const DEVICE_ID = 'PiCarX-RM520N-DHT22';
+  const API_BASE_URL = 'http://200.137.220.50:8080';
+  
+  const {
+    data,
+    history,
+    loading,
+    error,
+    isConnected,
+    refresh,
+    pausePolling,
+    resumePolling,
+    fetchStats
+  } = useRealtimeData(DEVICE_ID, 3000, API_BASE_URL);
 
+  const [stats, setStats] = useState(null);
+  const [isPolling, setIsPolling] = useState(true);
+
+  // Buscar estatísticas quando os dados carregam
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Buscar dados atuais
-        const currentResponse = await fetch(`${API_BASE_URL}/api/latest/${DEVICE_ID}`);
-        if (currentResponse.ok) {
-          const currentData = await currentResponse.json();
-          setData(currentData);
-        }
-
-        // Buscar histórico
-        const historyResponse = await fetch(`${API_BASE_URL}/api/history/${DEVICE_ID}`);
-        if (historyResponse.ok) {
-          const historyData = await historyResponse.json();
-          setHistory(historyData);
-        }
-
-        // Buscar estatísticas
-        const statsResponse = await fetch(`${API_BASE_URL}/api/stats/${DEVICE_ID}`);
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json();
-          setStats(statsData);
-        }
-      } catch (err) {
-        setError(t('errors.network'));
-        console.error('Erro ao buscar dados:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-    
-    // Atualizar dados a cada 2 segundos
-    const interval = setInterval(fetchData, 2000);
-    
-    return () => clearInterval(interval);
-  }, [API_BASE_URL, DEVICE_ID, t]);
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'online':
-        return 'success';
-      case 'offline':
-        return 'error';
-      default:
-        return 'default';
+    if (data && !stats) {
+      fetchStats().then(setStats).catch(console.error);
     }
-  };
+  }, [data, stats, fetchStats]);
 
-  const chartData = {
-    labels: history.slice(-20).reverse().map((item, index) => {
-      // Converter timestamp Unix para formato de tempo HH:MM:SS
-      const timestamp = item.timestamp;
-      const date = new Date(timestamp * 1000); // Converter para milissegundos
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      const seconds = date.getSeconds();
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }),
-    datasets: [
-      {
-        label: 'Temperatura (°C)',
-        data: history.slice(-20).reverse().map(item => item.data.temperature),
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        yAxisID: 'y',
-        tension: 0.1,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-      },
-      {
-        label: 'Umidade (%)',
-        data: history.slice(-20).reverse().map(item => item.data.humidity),
-        borderColor: 'rgb(54, 162, 235)',
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        yAxisID: 'y1',
-        tension: 0.1,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-      },
-    ],
-  };
+  // Dados do gráfico otimizados com useMemo
+  const chartData = useMemo(() => {
+    if (!history || history.length === 0) return null;
+
+    const sortedHistory = [...history].reverse();
+    const labels = sortedHistory.slice(-20).map((item, index) => {
+      const date = new Date(item.timestamp * 1000);
+      return date.toLocaleTimeString('pt-BR');
+    });
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Temperatura (°C)',
+          data: sortedHistory.slice(-20).map(item => item.data.temperature),
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.1,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Umidade (%)',
+          data: sortedHistory.slice(-20).map(item => item.data.humidity),
+          borderColor: 'rgb(54, 162, 235)',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          tension: 0.1,
+          yAxisID: 'y1',
+        },
+      ],
+    };
+  }, [history]);
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,
     plugins: {
       legend: {
         position: 'top',
-        labels: {
-          font: {
-            size: 14,
-          },
-        },
       },
       title: {
         display: true,
         text: 'Histórico de Temperatura e Umidade - PiCarX',
-        font: {
-          size: 16,
-        },
       },
     },
     scales: {
-      x: {
-        title: {
-          display: true,
-          text: 'Tempo',
-          font: {
-            size: 14,
-          },
-        },
-        grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
-        },
-        ticks: {
-          font: {
-            size: 12,
-          },
-        },
-      },
       y: {
         type: 'linear',
         display: true,
         position: 'left',
+        min: 20,
+        max: 40,
         title: {
           display: true,
           text: 'Temperatura (°C)',
-          color: 'rgb(255, 99, 132)',
-          font: {
-            size: 14,
-          },
-        },
-        min: 24,
-        max: 36,
-        grid: {
-          color: 'rgba(255, 99, 132, 0.1)',
+          color: 'rgb(75, 192, 192)',
         },
         ticks: {
-          color: 'rgb(255, 99, 132)',
-          font: {
-            size: 12,
-          },
+          color: 'rgb(75, 192, 192)',
+          stepSize: 2,
+        },
+        grid: {
+          color: 'rgba(75, 192, 192, 0.1)',
         },
       },
       y1: {
         type: 'linear',
         display: true,
         position: 'right',
+        min: 0,
+        max: 100,
         title: {
           display: true,
           text: 'Umidade (%)',
           color: 'rgb(54, 162, 235)',
-          font: {
-            size: 14,
-          },
-        },
-        min: 0,
-        max: 100,
-        grid: {
-          drawOnChartArea: false,
         },
         ticks: {
           color: 'rgb(54, 162, 235)',
-          font: {
-            size: 12,
-          },
+          stepSize: 10,
+        },
+        grid: {
+          drawOnChartArea: false,
+        },
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Tempo',
         },
       },
     },
+    animation: {
+      duration: 750,
+    },
   };
 
-  if (loading) {
+  const handlePausePolling = () => {
+    pausePolling();
+    setIsPolling(false);
+  };
+
+  const handleResumePolling = () => {
+    resumePolling();
+    setIsPolling(true);
+  };
+
+  const handleRefresh = () => {
+    refresh();
+  };
+
+  const handleClearSuccess = (result) => {
+    console.log('Banco limpo:', result);
+    // Recarregar dados após limpeza
+    refresh();
+  };
+
+  const handleClearError = (error) => {
+    console.error('Erro ao limpar banco:', error);
+  };
+
+  if (loading && !data) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4, textAlign: 'center' }}>
-        <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ mt: 2 }}>
-          {t('common.loading')}
-        </Typography>
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <LoadingSpinner 
+          message="Carregando dados do PiCarX..." 
+          fullHeight={true}
+        />
       </Container>
     );
   }
 
-  if (error) {
+  // Se não há dados e não está carregando, mostrar mensagem informativa
+  if (!loading && !data && !error) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Aguardando dados do PiCarX
+          </Typography>
+          <Typography variant="body2">
+            O dispositivo PiCarX ainda não enviou dados. Verifique se:
+          </Typography>
+          <ul>
+            <li>O módulo 5G está conectado</li>
+            <li>O script de publicação está rodando</li>
+            <li>A conexão com o servidor está funcionando</li>
+          </ul>
         </Alert>
+        
+        <Box display="flex" justifyContent="center" gap={2}>
+          <ClearDatabaseButton
+            baseUrl={API_BASE_URL}
+            onClearSuccess={handleClearSuccess}
+            onClearError={handleClearError}
+          />
+        </Box>
       </Container>
     );
   }
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: 'calc(100vh - 64px)', // Subtrair altura do header do navegador
-      overflow: 'hidden',
-      backgroundColor: '#f5f5f5'
-    }}>
-      <Container maxWidth="xl" sx={{ 
-        py: 1, 
-        flex: 1, 
-        display: 'flex', 
-        flexDirection: 'column',
-        height: '100%'
-      }}>
-        {/* Breadcrumbs */}
-        <Breadcrumbs sx={{ mb: 1, fontSize: '0.875rem' }}>
-          <Link
-            component="button"
-            variant="body2"
-            onClick={() => navigate('/')}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <Home fontSize="small" />
-            {t('navigation.home')}
-          </Link>
-          <Link
-            component="button"
-            variant="body2"
-            onClick={() => navigate('/dashboard')}
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <Dashboard fontSize="small" />
-            {t('navigation.dashboard')}
-          </Link>
-          <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '0.875rem' }}>
-            <PhoneAndroid fontSize="small" />
-            PiCarX Dashboard
-          </Typography>
-        </Breadcrumbs>
+    <ErrorBoundary>
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      {/* Breadcrumbs */}
+      <Breadcrumbs sx={{ mb: 3 }}>
+        <Link
+          component="button"
+          variant="body1"
+          onClick={() => navigate('/')}
+          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+        >
+          <Home fontSize="small" />
+          {t('navigation.home')}
+        </Link>
+        <Link
+          component="button"
+          variant="body1"
+          onClick={() => navigate('/dashboard')}
+          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+        >
+          <Dashboard fontSize="small" />
+          {t('navigation.dashboard')}
+        </Link>
+        <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <PhoneAndroid fontSize="small" />
+          PiCarX Dashboard
+        </Typography>
+      </Breadcrumbs>
 
-        {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-          <PhoneAndroid sx={{ fontSize: 28, color: 'secondary.main' }} />
-          <Box>
-            <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
-              PiCarX Dashboard
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-              Monitoramento 5G com DHT22
-            </Typography>
-          </Box>
-          <Chip label="5G" color="secondary" size="small" sx={{ ml: 'auto' }} />
+      {/* Header com status de conexão */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          PiCarX Dashboard
+        </Typography>
+        <Box display="flex" alignItems="center" gap={2}>
+          <RealtimeIndicator isPolling={isPolling} interval={3000} />
+          <ConnectionStatus
+            isConnected={isConnected}
+            error={error}
+            onRefresh={handleRefresh}
+            onPause={handlePausePolling}
+            onResume={handleResumePolling}
+            isPolling={isPolling}
+            lastUpdate={data?.timestamp}
+          />
+          <ClearDatabaseButton
+            baseUrl={API_BASE_URL}
+            onClearSuccess={handleClearSuccess}
+            onClearError={handleClearError}
+          />
         </Box>
+      </Box>
 
-        <Grid container spacing={1.5} sx={{ flex: 1, mb: 1 }}>
-          {/* Coluna Esquerda - Leitura Atual e Estatísticas Empilhadas */}
-          <Grid item xs={12} md={4}>
-            {/* Leitura Atual */}
-            <Card sx={{ mb: 1.5, height: '48%', boxShadow: 2 }}>
-              <CardContent sx={{ p: 1.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="subtitle1" component="h2" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
-                  {t('dashboard.current.title')}
-                </Typography>
-                
-                {data ? (
-                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                      <Thermostat sx={{ mr: 1, color: 'error.main', fontSize: 20 }} />
-                      <Typography variant="h6" component="span" sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>
-                        {data.data.temperature.toFixed(2)}°C
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                      <Opacity sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                      <Typography variant="h6" component="span" sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>
-                        {data.data.humidity.toFixed(2)}%
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <AccessTime sx={{ mr: 0.5, fontSize: 12 }} />
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                        {new Date(data.created_at).toLocaleString('pt-BR')}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ) : (
-                  <Typography color="text.secondary" variant="body2">
-                    {t('common.loading')}
+      {/* Alertas de erro */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Dados atuais */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} size={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography color="text.secondary" gutterBottom>
+                    Temperatura
                   </Typography>
-                )}
+                  {data ? (
+                    <Typography variant="h4" component="div">
+                      {data.data.temperature.toFixed(1)}°C
+                    </Typography>
+                  ) : (
+                    <CardLoading message="Carregando..." />
+                  )}
+                </Box>
+                <Thermostat sx={{ fontSize: 40, color: 'primary.main' }} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} size={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography color="text.secondary" gutterBottom>
+                    Umidade
+                  </Typography>
+                  {data ? (
+                    <Typography variant="h4" component="div">
+                      {data.data.humidity.toFixed(1)}%
+                    </Typography>
+                  ) : (
+                    <CardLoading message="Carregando..." />
+                  )}
+                </Box>
+                <Opacity sx={{ fontSize: 40, color: 'primary.main' }} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} size={3}>
+          
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography color="text.secondary" gutterBottom>
+                      Conexão
+                    </Typography>
+                    {data ? (
+                      <Chip 
+                        label={data.metadata?.module_type || '5G'} 
+                        color="success" 
+                        size="small"
+                        icon={<PhoneAndroid />}
+                      />
+                    ) : (
+                      <CardLoading message="Carregando..." />
+                    )}
+                  </Box>
+                  <PhoneAndroid sx={{ fontSize: 40, color: 'success.main' }} />
+                </Box>
               </CardContent>
             </Card>
+          
+        </Grid>
 
-            {/* Estatísticas */}
-            <Card sx={{ height: '50%', boxShadow: 2 }}>
-              <CardContent sx={{ p: 1.5, height: '100%', overflow: 'auto' }}>
-                <Typography variant="subtitle1" component="h2" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
-                  {t('dashboard.stats.title')}
-                </Typography>
-                
-                {stats ? (
+        <Grid item xs={12} sm={6} size={3}>
+          
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="body2" color="error.main" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
-                        {stats.avg_temperature?.toFixed(2)}°C
+                    <Typography color="text.secondary" gutterBottom>
+                      Última Atualização
+                    </Typography>
+                    {data ? (
+                      <Typography variant="body2">
+                        {data.timestamp ? new Date(data.timestamp * 1000).toLocaleString('pt-BR') : 'Data não disponível'}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                        {t('dashboard.stats.avgTemperature')}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="body2" color="primary.main" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
-                        {stats.avg_humidity?.toFixed(2)}%
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                        {t('dashboard.stats.avgHumidity')}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="body2" color="error.main" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
-                        {stats.max_temperature?.toFixed(2)}°C
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                        {t('dashboard.stats.maxTemperature')}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="body2" color="primary.main" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
-                        {stats.max_humidity?.toFixed(2)}%
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                        {t('dashboard.stats.maxHumidity')}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="body2" color="error.main" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
-                        {stats.min_temperature?.toFixed(2)}°C
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                        {t('dashboard.stats.minTemperature')}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="body2" color="primary.main" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
-                        {stats.min_humidity?.toFixed(2)}%
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                        {t('dashboard.stats.minHumidity')}
-                      </Typography>
-                    </Box>
-                    
-                    <Box>
-                      <Typography variant="body2" color="text.primary" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
-                        {stats.total_readings}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                        {t('dashboard.stats.totalReadings')}
-                      </Typography>
-                    </Box>
+                    ) : (
+                      <CardLoading message="Carregando..." />
+                    )}
                   </Box>
-                ) : (
-                  <Typography color="text.secondary" variant="body2">
-                    {t('common.loading')}
-                  </Typography>
-                )}
+                  <AccessTime sx={{ fontSize: 40, color: 'primary.main' }} />
+                </Box>
+              </CardContent>
+            </Card>
+          
+        </Grid>
+      </Grid>
+
+      {/* Informações adicionais */}
+      {data && (
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Informações do Dispositivo
+                </Typography>
+                <Box display="flex" flexDirection="column" gap={1}>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Device ID:
+                    </Typography>
+                    <Typography variant="body2">
+                      {data.device_id}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Tipo de Sensor:
+                    </Typography>
+                    <Typography variant="body2">
+                      {data.sensor_type?.toUpperCase()}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      GPIO Pin:
+                    </Typography>
+                    <Typography variant="body2">
+                      board.D14
+                    </Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      IP Address:
+                    </Typography>
+                    <Typography variant="body2">
+                      {data.metadata?.wifi_ip || 'N/A'}
+                    </Typography>
+                  </Box>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
 
-          {/* Coluna Direita - Gráfico */}
-          <Grid item xs={12} md={8}>
-            <Card sx={{ height: '100%', width: '100%', boxShadow: 2 }}>
-              <CardContent sx={{ height: '100%', p: 1.5, display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="subtitle1" component="h2" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
-                  {t('dashboard.history.title')}
+          <Grid item xs={12} sm={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Status da Conexão
                 </Typography>
-                <Box sx={{ flex: 1, width: '100%', minHeight: 0 }}>
-                  <Line data={chartData} options={chartOptions} />
+                <Box display="flex" flexDirection="column" gap={1}>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Tipo de Módulo:
+                    </Typography>
+                    <Typography variant="body2">
+                      {data.metadata?.module_type || 'N/A'}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Tipo de Conexão:
+                    </Typography>
+                    <Typography variant="body2">
+                      5G
+                    </Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Uptime:
+                    </Typography>
+                    <Typography variant="body2">
+                      1min
+                    </Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Leitura #:
+                    </Typography>
+                    <Typography variant="body2">
+                      {data.reading_number || 'N/A'}
+                    </Typography>
+                  </Box>
                 </Box>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
-      </Container>
+      )}
 
-      {/* Rodapé - Informações do Dispositivo */}
-      <Box sx={{ bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider', flexShrink: 0 }}>
-        <Container maxWidth="xl" sx={{ py: 0.5 }}>
-          <Typography variant="body2" component="h3" gutterBottom sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
-            {t('dashboard.device.title')}
-          </Typography>
-          
-          {data ? (
-            <Grid container spacing={1}>
-              <Grid item xs={12} sm={6} md={3}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                    {t('dashboard.device.id')}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
-                    {data.device_id}
-                  </Typography>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                    {t('dashboard.device.status')}
-                  </Typography>
-                  <Chip 
-                    label={data.metadata?.status || 'online'} 
-                    color={getStatusColor(data.metadata?.status || 'online')}
-                    size="small"
-                    sx={{ fontSize: '0.75rem', height: 20 }}
-                  />
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                    Módulo 5G
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
-                    {'RM520N-GL'}
-                  </Typography>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                    Conexão
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
-                    {data.metadata?.connection_type || '5G'}
-                  </Typography>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                    GPIO Pin
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
-                    {data.metadata?.gpio_pin || '11'}
-                  </Typography>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                    Sinal 5G
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
-                    {data.metadata?.wifi_rssi ? `${data.metadata.wifi_rssi} dBm` : 'N/A'}
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
-          ) : (
-            <Typography color="text.secondary" variant="body2">
-              {t('common.loading')}
-            </Typography>
-          )}
-        </Container>
-      </Box>
-    </Box>
+      {/* Gráfico */}
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Histórico de Dados
+              </Typography>
+              <Box sx={{ height: 400 }}>
+                {chartData ? (
+                  <Line data={chartData} options={chartOptions} />
+                ) : (
+                  <ChartLoading message="Carregando gráfico..." />
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Estatísticas */}
+      {stats && (
+        <Grid container spacing={3} sx={{ mt: 2 }}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Estatísticas
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} size={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      Total de Leituras
+                    </Typography>
+                    <Typography variant="h6">
+                      {stats.total_readings}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6} size={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      Temp. Média
+                    </Typography>
+                    <Typography variant="h6">
+                      {stats.avg_temperature?.toFixed(1)}°C
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6} size={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      Umidade Média
+                    </Typography>
+                    <Typography variant="h6">
+                      {stats.avg_humidity?.toFixed(1)}%
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6} size={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      Uptime
+                    </Typography>
+                    <Typography variant="h6">
+                      {/* {Math.floor(stats.uptime_seconds / 3600)}h */}
+                      N/A
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+      </Container>
+    </ErrorBoundary>
   );
 };
 

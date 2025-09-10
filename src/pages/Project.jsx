@@ -35,6 +35,16 @@ const Project = () => {
   const components = [
     {
       icon: <Memory />,
+      title: 'PiCarX com Raspberry Pi 4',
+      description: 'Placa PiCarX com Raspberry Pi CarX, processador quad-core e 1GB RAM.',
+    },
+    {
+      icon: <Memory />,
+      title: 'Módulo RM520N para 5G',
+      description: 'Módulo 5G FN990A40 com RM520N, processador quad-core e 1GB RAM.',
+    },
+    {
+      icon: <Memory />,
       title: t('project.components.esp32'),
       description: 'Microcontrolador ESP32 com Wi-Fi integrado, processador dual-core e 520KB RAM.',
     },
@@ -63,13 +73,13 @@ const Project = () => {
     },
     {
       icon: <Memory />,
-      title: t('project.architecture.microcontroller'),
-      description: 'ESP32 processa e formata os dados',
+      title: 'Raspberry Pi 4',
+      description: 'Raspberry Pi 4 processa e formata os dados',
     },
     {
       icon: <Wifi />,
-      title: t('project.architecture.communication'),
-      description: 'Wi-Fi transmite dados para o servidor',
+      title: 'Comunicação com módulo 5G',
+      description: 'Módulo 5G transmite dados para o servidor',
     },
     {
       icon: <Storage />,
@@ -278,32 +288,32 @@ const Project = () => {
             <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6" gutterBottom>
-                  ESP32
+                  PiCarX com Raspberry Pi 4
                 </Typography>
                 <List dense>
                   <ListItem>
                     <ListItemIcon>
                       <CheckCircle color="success" />
                     </ListItemIcon>
-                    <ListItemText primary="Processador: Dual-core 240MHz" />
+                    <ListItemText primary="Processador: Quad-core 1.5GHz" />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
                       <CheckCircle color="success" />
                     </ListItemIcon>
-                    <ListItemText primary="RAM: 520KB SRAM" />
+                    <ListItemText primary="RAM: 1GB LPDDR4" />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
                       <CheckCircle color="success" />
                     </ListItemIcon>
-                    <ListItemText primary="Wi-Fi: 802.11 b/g/n" />
+                    <ListItemText primary="Rede: Ethernet + WiFi" />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon>
                       <CheckCircle color="success" />
                     </ListItemIcon>
-                    <ListItemText primary="GPIO: 34 pinos digitais" />
+                    <ListItemText primary="Comunicação por 5G" />
                   </ListItem>
                 </List>
               </Grid>

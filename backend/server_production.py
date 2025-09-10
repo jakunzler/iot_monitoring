@@ -6,13 +6,11 @@ Configurado para máquina com IP fixo 200.137.220.50
 
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 import sqlite3
 import os
 import logging
 from pathlib import Path
-import gunicorn.app.wsgiapp
 
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para todas as rotas
@@ -140,12 +138,12 @@ def ingest_data():
             
             # Criar metadata a partir dos campos antigos
             metadata = {
-                'wifi_rssi': data.get('wifi_rssi'),
-                'wifi_ip': data.get('wifi_ip'),
+                'wifi_rssi': data.get('wifi_rssi', "N/A"),
+                'wifi_ip': data.get('wifi_ip', "N/A"),
                 'uptime_seconds': data.get('uptime_seconds', timestamp),
                 'module_type': data.get('module_type', 'ESP32'),
                 'connection_type': data.get('connection_type', 'Wi-Fi'),
-                'gpio_pin': data.get('gpio_pin')
+                'gpio_pin': data.get('gpio_pin', "N/A")
             }
             
         else:
@@ -171,10 +169,10 @@ def ingest_data():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             device_id, timestamp, sensor_type, temperature, humidity, temperature_f,
-            metadata.get('wifi_rssi'), metadata.get('wifi_ip'),
+            metadata.get('wifi_rssi', "N/A"), metadata.get('wifi_ip', "N/A"),
             metadata.get('uptime_seconds'), reading_number,
             metadata.get('module_type', 'ESP32'), metadata.get('connection_type', 'Wi-Fi'),
-            metadata.get('gpio_pin')
+            metadata.get('gpio_pin', "N/A")
         ))
         conn.commit()
         conn.close()
@@ -219,15 +217,15 @@ def get_latest(device_id):
                     'temperature_f': row[6]
                 },
                 'metadata': {
-                    'wifi_rssi': row[7],
-                    'wifi_ip': row[8],
-                    'uptime_seconds': row[9],
+                    'wifi_rssi': row[7] if row[7] is not None else "N/A",
+                    'wifi_ip': row[8] if row[8] is not None else "N/A",
+                    'uptime_seconds': row[9] if row[9] is not None else 0,
                     'module_type': row[12] if len(row) > 12 else 'ESP32',
                     'connection_type': row[13] if len(row) > 13 else 'Wi-Fi',
                     'gpio_pin': row[14] if len(row) > 14 else None
                 },
                 'reading_number': row[10],
-                'created_at': row[11]
+                'created_at': row[15] if len(row) > 15 else datetime.now().isoformat()
             })
         else:
             return jsonify({'error': 'Nenhum dado encontrado'}), 404
@@ -267,15 +265,15 @@ def get_history(device_id):
                     'temperature_f': row[6]
                 },
                 'metadata': {
-                    'wifi_rssi': row[7],
-                    'wifi_ip': row[8],
-                    'uptime_seconds': row[9],
+                    'wifi_rssi': row[7] if row[7] is not None else "N/A",
+                    'wifi_ip': row[8] if row[8] is not None else "N/A",
+                    'uptime_seconds': row[9] if row[9] is not None else 0,
                     'module_type': row[12] if len(row) > 12 else 'ESP32',
                     'connection_type': row[13] if len(row) > 13 else 'Wi-Fi',
                     'gpio_pin': row[14] if len(row) > 14 else None
                 },
                 'reading_number': row[10],
-                'created_at': row[11]
+                'created_at': row[15] if len(row) > 15 else datetime.now().isoformat()
             })
         
         return jsonify(data)
@@ -330,6 +328,40 @@ def get_stats(device_id):
     except Exception as e:
         logger.error(f"Erro ao buscar estatísticas: {e}")
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+
+@app.route('/api/clear', methods=['POST'])
+def clear_database():
+    """Limpar todos os registros do banco de dados"""
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        
+        # Contar registros antes de limpar
+        cursor.execute('SELECT COUNT(*) FROM sensor_data')
+        count_before = cursor.fetchone()[0]
+        
+        # Limpar todos os registros
+        cursor.execute('DELETE FROM sensor_data')
+        conn.commit()
+        
+        # Resetar o auto-increment
+        cursor.execute('DELETE FROM sqlite_sequence WHERE name="sensor_data"')
+        conn.commit()
+        
+        conn.close()
+        
+        logger.info(f"Banco de dados limpo: {count_before} registros removidos")
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Banco de dados limpo com sucesso. {count_before} registros removidos.',
+            'records_removed': count_before,
+            'timestamp': datetime.now().isoformat()
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Erro ao limpar banco: {e}")
+        return jsonify({'error': f'Erro ao limpar banco: {str(e)}'}), 500
 
 @app.route('/api/health')
 def health_check():
@@ -387,8 +419,5 @@ if __name__ == '__main__':
     logger.info(f"Banco de dados: {DATABASE_FILE}")
     logger.info("=" * 50)
     
-    # Para produção, usar gunicorn
-    if os.getenv('FLASK_ENV') == 'production':
-        gunicorn.app.wsgiapp.run()
-    else:
-        app.run(host='0.0.0.0', port=8080, debug=False)
+    # Iniciar servidor Flask
+    app.run(host='0.0.0.0', port=8080, debug=False)
