@@ -1,0 +1,6 @@
+# Dependencias do publisher no Raspberry Pi (PicarX / sensores).
+# Instalacao: usar venv (PEP 668). O install-systemd.sh cria .venv e executa pip -r aqui.
+# Pacote sistema (uma vez): sudo apt install python3-venv python3-full
+requests>=2.28.0
+adafruit-circuitpython-dht
+adafruit-blinka

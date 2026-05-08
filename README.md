@@ -1,236 +1,156 @@
-# Sistema de Monitoramento IoT - ESP32 + DHT22
+# Sistema de Monitoramento IoT
 
-Sistema completo de monitoramento de temperatura e umidade utilizando ESP32, sensor DHT22 e interface web React.
+Sistema de monitoramento de temperatura e umidade com frontend React, API Flask no backend e **publisher** (ESP32/PiCarX: leituras e envio HTTP), mais scripts operacionais e documentacao.
 
-## 🚀 Características
+## Estrutura do repositorio
 
-- **Monitoramento em Tempo Real**: Dados atualizados a cada 2.5 segundos
-- **Interface Moderna**: Dashboard responsivo com Material-UI
-- **Multi-idioma**: Suporte a Português, Inglês e Espanhol
-- **Temas**: Modo claro e escuro
-- **Gráficos Interativos**: Visualização de histórico com Chart.js
-- **API REST**: Backend Flask com endpoints para dados
-- **Deploy Cloud**: Configurado para Google Cloud Platform
+- `code/`: implementacao tecnica agrupada em tres componentes.
+- `scripts/`: automacao de deploy e diagnostico (maquina de desenvolvimento ou CI).
+- `docs/`: documentacao tecnica e guias.
 
-## 🏗️ Arquitetura
+### Componentes em `code/`
 
+```text
+code/
+├── frontend/
+│   ├── src/ ...
+│   └── deprecated/      # Paginas/componentes antigos (ex.: Project, DataDebugger)
+├── backend/
+│   ├── server.py, server_production.py, requirements.txt, Dockerfile ...
+│   └── deprecated/      # Variantes legadas Cloud Run/setup/monitoramento
+├── publisher/
+│   ├── publish_picarx_dht22.py, systemd/, install-systemd.sh, requirements.txt
+│   └── deprecated/      # Scripts RM520/GPIO/testes/publicadores alternativos
+├── docker-compose.yml
+├── Dockerfile.cloudrun
+├── app.yaml
+└── cloudrun*.yaml
 ```
-ESP32 + DHT22 → Wi-Fi → Flask API → SQLite → React Dashboard
+
+Arquivos em cada `deprecated/` sao mantidos como referencia ou ferramentas pontuais; o fluxo principal usa apenas os ficheiros na raiz do componente.
+
+## Arquitetura
+
+```text
+ESP32/DHT22/PiCarX -> rede -> Flask API -> SQLite -> React Dashboard
 ```
 
-### Componentes
+## Desenvolvimento local
 
-- **ESP32**: Microcontrolador com Wi-Fi integrado
-- **DHT22**: Sensor de temperatura e umidade (±0.5°C, ±2% RH)
-- **Flask Server**: API REST para processamento de dados
-- **SQLite**: Banco de dados para armazenamento
-- **React App**: Interface web responsiva
+### Frontend
 
-## 📦 Instalação
-
-### Pré-requisitos
-
-- Node.js 18+
-- Python 3.11+
-- Docker (opcional)
-
-### Desenvolvimento Local
-
-1. **Clone o repositório**
 ```bash
-git clone https://github.com/your-username/publica-dht22-web.git
-cd publica-dht22-web
-```
-
-2. **Instale as dependências**
-```bash
+cd code/frontend
 npm install
-```
-
-3. **Configure o backend**
-```bash
-# Copie o servidor Flask do projeto original
-cp ../utv-uav-jammer/jamming-iot/code/wifi/publica_dht22/server.py ./backend/
-cp ../utv-uav-jammer/jamming-iot/code/wifi/publica_dht22/requirements.txt ./backend/
-```
-
-4. **Execute o servidor de desenvolvimento**
-```bash
 npm run dev
 ```
 
-5. **Em outro terminal, execute o backend**
+### Backend
+
 ```bash
-cd backend
+cd code/backend
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 python server.py
 ```
 
-### Docker
+### Publisher (Raspberry Pi / PiCarX)
+
+Codigo do publicador, testes de hardware e unidade systemd estao em `code/publisher/`.
+
+**Instalacao recomendada na Pi** (diretorio fixo `/home/pi/publisher`): existem dois units em `code/publisher/systemd/` — **local** (`127.0.0.1`) e **remoto** (servidor na LAN ou na Internet). Só um deve estar ativo (o sensor DHT22 não suporta dois processos em paralelo).
+
+| Perfil | Serviço systemd | Ficheiro em `/etc/default/` |
+|--------|-----------------|------------------------------|
+| Local | `picarx-dht22-local-publisher` | `picarx-dht22-publisher` |
+| Remoto | `picarx-dht22-remote-publisher` | `picarx-dht22-remote-publisher` |
+
+Se o serviço **remoto** imprimir `Endpoint: http://127.0.0.1:8080/...`, o ficheiro **`/etc/default/picarx-dht22-remote-publisher`** não existe ou não foi carregado; o Python usa então o valor por defeito local. Crie-o a partir do exemplo no repositório e reinicie:
 
 ```bash
-# Build e execute com Docker Compose
-docker-compose up --build
+sudo cp /home/pi/publisher/systemd/picarx-dht22-remote-publisher.env /etc/default/picarx-dht22-remote-publisher
+sudo nano /etc/default/picarx-dht22-remote-publisher   # ajuste PUBLISH_URL
+sudo systemctl restart picarx-dht22-remote-publisher
 ```
 
-## 🔧 Configuração
-
-### ESP32
-
-1. **Instale as bibliotecas no Arduino IDE**:
-   - DHT sensor library
-   - WiFi library
-   - ArduinoJson
-
-2. **Configure as credenciais Wi-Fi**:
-```cpp
-const char* ssid = "SUA_REDE_WIFI";
-const char* password = "SUA_SENHA";
-```
-
-3. **Configure o servidor**:
-```cpp
-const char* serverUrl = "http://SEU_IP:8080/api/ingest";
-```
-
-### Frontend
-
-1. **Configure a URL da API**:
-Edite `src/pages/Dashboard.jsx`:
-```javascript
-const API_BASE_URL = 'http://localhost:8080'; // Local
-// const API_BASE_URL = 'https://seu-dominio.com'; // Produção
-```
-
-2. **Personalize as traduções**:
-Edite os arquivos em `src/locales/`
-
-## 🌐 Deploy
-
-### Google Cloud Platform
-
-1. **Instale o Google Cloud SDK**
-```bash
-gcloud init
-```
-
-2. **Configure o projeto**
-```bash
-gcloud config set project SEU_PROJETO_ID
-```
-
-3. **Build da aplicação**
-```bash
-npm run build
-```
-
-4. **Deploy no App Engine**
-```bash
-gcloud app deploy
-```
-
-### Docker
+1. Copie o conteúdo de `code/publisher/` para `/home/pi/publisher` (por exemplo com `scp -r` ou `rsync`).
 
 ```bash
-# Build da imagem
-docker build -t publica-dht22-web .
-
-# Execute o container
-docker run -p 3000:80 publica-dht22-web
+scp -r code/publisher/ pi@picarx.local:/home/pi/
 ```
 
-## 📊 API Endpoints
+2. No Raspberry Pi OS recente, **pip install --user** no Python do sistema falha (PEP 668). Use o venv que **`install-systemd.sh`** cria em `/home/pi/publisher/.venv`. Pacote necessário:
 
-### GET `/api/latest/{device_id}`
-Retorna a leitura mais recente do dispositivo.
-
-**Resposta**:
-```json
-{
-  "device_id": "ESP32-DHT22-Publisher",
-  "timestamp": "2024-01-01T12:00:00Z",
-  "data": {
-    "temperature": 25.5,
-    "humidity": 60.2
-  },
-  "metadata": {
-    "wifi_rssi": -45,
-    "wifi_ip": "192.168.1.100",
-    "uptime_seconds": 3600,
-    "reading_number": 1440
-  }
-}
+```bash
+ssh pi@picarx.local "sudo apt install -y python3-venv python3-full"
 ```
 
-### GET `/api/history/{device_id}`
-Retorna o histórico de leituras.
+3. Registe o serviço (cria/atualiza `.venv`, instala `requirements.txt`, copia o env de exemplo só se `/etc/default/...` ainda não existir, e desativa o outro publicador):
 
-### GET `/api/stats/{device_id}`
-Retorna estatísticas dos dados.
+**Local** (API a correr na própria Pi ou noutro host mas com URL local no env):
 
-## 🎨 Personalização
+```bash
+ssh pi@picarx.local "cd /home/pi/publisher && chmod +x install-systemd.sh && PROFILE=local ./install-systemd.sh"
+```
 
-### Temas
+**Remoto:**
 
-Os temas são definidos em `src/themes/index.js`:
-- Modo claro: Cores suaves e legíveis
-- Modo escuro: Cores escuras para conforto visual
+```bash
+ssh pi@picarx.local "cd /home/pi/publisher && chmod +x install-systemd.sh && PROFILE=remote ./install-systemd.sh"
+```
 
-### Idiomas
+Edite `PUBLISH_URL` em `/etc/default/picarx-dht22-publisher` (local) ou `/etc/default/picarx-dht22-remote-publisher` (remoto) se o instalador tiver criado o ficheiro com o placeholder do repositório.
 
-Adicione novos idiomas em `src/locales/`:
-1. Crie arquivo `novo-idioma.json`
-2. Adicione as traduções
-3. Importe no `useTranslation.js`
+Logs: `journalctl -u picarx-dht22-local-publisher -f` ou `journalctl -u picarx-dht22-remote-publisher -f`.
 
-## 🐛 Troubleshooting
+Da maquina de desenvolvimento, o script `scripts/update-picarx-fixed.sh` tambem envia os arquivos e registra o systemd na Pi.
 
-### ESP32 não conecta ao Wi-Fi
-- Verifique credenciais da rede
-- Confirme se a rede está 2.4GHz
-- Teste com `wifi_diagnostico.ino`
+**Teste manual (sem systemd):**
 
-### Dados não aparecem no dashboard
-- Verifique se o servidor Flask está rodando
-- Confirme a URL da API no frontend
-- Teste com `curl http://localhost:8080/api/latest/ESP32-DHT22-Publisher`
+```bash
+cd /home/pi/publisher
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+export PUBLISH_URL=https://seu-servidor:8080/api/ingest
+.venv/bin/python publish_picarx_dht22.py
+```
 
-### Erro de CORS
-- Configure o proxy no nginx
-- Adicione headers CORS no Flask
+**Hardware / RM520 (menu de testes legado):** `cd code/publisher/deprecated && ./run_tests.sh`
 
-## 📈 Monitoramento
+## Docker (frontend + backend)
 
-### Métricas Importantes
-- **Temperatura**: -40°C a +80°C
-- **Umidade**: 0-100% RH
-- **Frequência**: 2.5 segundos
-- **Precisão**: ±0.5°C, ±2% RH
+```bash
+cd code
+docker compose up --build
+```
 
-### Alertas
-- Temperatura > 30°C
-- Umidade > 80%
-- Falha na comunicação
-- Sensor offline
+## Deploy
 
-## 🤝 Contribuição
+### Google Cloud App Engine (frontend estatico)
 
-1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+O `app.yaml` referencia `frontend/dist`. Build e deploy a partir de `code/`:
 
-## 📄 Licença
+```bash
+cd code/frontend && npm install && npm run build && cd ..
+gcloud app deploy app.yaml
+```
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+Ou use `scripts/deploy-gcp.sh` a partir da raiz do repositorio.
 
-## 📞 Suporte
+### Outros scripts
 
-- **Email**: seu-email@exemplo.com
-- **Issues**: [GitHub Issues](https://github.com/your-username/publica-dht22-web/issues)
-- **Documentação**: [Wiki](https://github.com/your-username/publica-dht22-web/wiki)
+Exemplos em `scripts/`:
 
----
+- `scripts/deploy-cloudrun.sh`
+- `scripts/deploy-complete.sh`
+- `scripts/diagnose_server.sh`
 
-**Desenvolvido com ❤️ para demonstração de tecnologias IoT**
+## API principal
+
+- `GET /api/latest/{device_id}`: leitura mais recente.
+- `GET /api/history/{device_id}`: historico de leituras.
+- `GET /api/stats/{device_id}`: estatisticas agregadas.
+
+## Documentacao adicional
+
+Em `docs/` e em `docs/backend/` (inclui material sobre modulo 5G / RM520N).

@@ -1,0 +1,19 @@
+[Unit]
+Description=PiCarX DHT22 HTTP publisher (IoT monitoring)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/publisher
+EnvironmentFile=-/etc/default/picarx-dht22-publisher
+ExecStart=/home/pi/publisher/.venv/bin/python /home/pi/publisher/publish_picarx_dht22.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
