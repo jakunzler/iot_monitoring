@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "sync-uml": "mkdir -p public/uml/pt public/uml/en public/uml/es && cp ../../docs/dist/svg/pt/*.svg public/uml/pt/ && cp ../../docs/dist/svg/en/*.svg public/uml/en/ && cp ../../docs/dist/svg/es/*.svg public/uml/es/",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"

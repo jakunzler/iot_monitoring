@@ -1,12 +1,12 @@
 # Sistema de Monitoramento IoT
 
-Sistema de monitoramento de temperatura e umidade com frontend React, API Flask no backend e **publisher** (ESP32/PiCarX: leituras e envio HTTP), mais scripts operacionais e documentacao.
+Sistema de monitoramento de temperatura e umidade com frontend React, API Flask no backend e **publisher** (ESP32/PiCarX: leituras e envio HTTP), mais scripts operacionais e documentação.
 
-## Estrutura do repositorio
+## Estrutura do repositório
 
-- `code/`: implementacao tecnica agrupada em tres componentes.
-- `scripts/`: automacao de deploy e diagnostico (maquina de desenvolvimento ou CI).
-- `docs/`: documentacao tecnica e guias.
+- `code/`: implementação técnica agrupada em três componentes.
+- `scripts/`: automação de deploy e diagnóstico (máquina de desenvolvimento ou CI).
+- `docs/`: documentação técnica e guias.
 
 ### Componentes em `code/`
 
@@ -14,7 +14,7 @@ Sistema de monitoramento de temperatura e umidade com frontend React, API Flask 
 code/
 ├── frontend/
 │   ├── src/ ...
-│   └── deprecated/      # Paginas/componentes antigos (ex.: Project, DataDebugger)
+│   └── deprecated/      # Páginas/componentes antigos (ex.: Project, DataDebugger)
 ├── backend/
 │   ├── server.py, server_production.py, requirements.txt, Dockerfile ...
 │   └── deprecated/      # Variantes legadas Cloud Run/setup/monitoramento
@@ -27,13 +27,16 @@ code/
 └── cloudrun*.yaml
 ```
 
-Arquivos em cada `deprecated/` sao mantidos como referencia ou ferramentas pontuais; o fluxo principal usa apenas os ficheiros na raiz do componente.
+Arquivos em cada `deprecated/` são mantidos como referência ou ferramentas pontuais; o fluxo principal usa apenas os arquivos na raiz do componente.
 
 ## Arquitetura
 
 ```text
-ESP32/DHT22/PiCarX -> rede -> Flask API -> SQLite -> React Dashboard
+ESP32 (Wi-Fi e/ou LoRa) / PiCarX (5G Quectel RM520N-GL, Wi-Fi como fallback) + DHT22
+  -> rede -> API Flask -> SQLite -> painel React
 ```
+
+No PiCarX o envio **prioriza o 5G** (módulo **Quectel RM520N-GL**); o **Wi-Fi** serve como alternativa quando fizer sentido na instalação. No ESP32 prevê-se **Wi-Fi** e **LoRa**, conforme firmware e hardware.
 
 ## Desenvolvimento local
 
@@ -57,16 +60,16 @@ python server.py
 
 ### Publisher (Raspberry Pi / PiCarX)
 
-Codigo do publicador, testes de hardware e unidade systemd estao em `code/publisher/`.
+Código do publicador, testes de hardware e unidade systemd estão em `code/publisher/`.
 
-**Instalacao recomendada na Pi** (diretorio fixo `/home/pi/publisher`): existem dois units em `code/publisher/systemd/` — **local** (`127.0.0.1`) e **remoto** (servidor na LAN ou na Internet). Só um deve estar ativo (o sensor DHT22 não suporta dois processos em paralelo).
+**Instalação recomendada na Pi** (diretório fixo `/home/pi/publisher`): existem dois units em `code/publisher/systemd/` — **local** (`127.0.0.1`) e **remoto** (servidor na LAN ou na Internet). Só um deve estar ativo (o sensor DHT22 não suporta dois processos em paralelo).
 
-| Perfil | Serviço systemd | Ficheiro em `/etc/default/` |
+| Perfil | Serviço systemd | Arquivo em `/etc/default/` |
 |--------|-----------------|------------------------------|
 | Local | `picarx-dht22-local-publisher` | `picarx-dht22-publisher` |
 | Remoto | `picarx-dht22-remote-publisher` | `picarx-dht22-remote-publisher` |
 
-Se o serviço **remoto** imprimir `Endpoint: http://127.0.0.1:8080/...`, o ficheiro **`/etc/default/picarx-dht22-remote-publisher`** não existe ou não foi carregado; o Python usa então o valor por defeito local. Crie-o a partir do exemplo no repositório e reinicie:
+Se o serviço **remoto** imprimir `Endpoint: http://127.0.0.1:8080/...`, o arquivo **`/etc/default/picarx-dht22-remote-publisher`** não existe ou não foi carregado; o Python usa então o valor padrão local. Crie-o a partir do exemplo no repositório e reinicie:
 
 ```bash
 sudo cp /home/pi/publisher/systemd/picarx-dht22-remote-publisher.env /etc/default/picarx-dht22-remote-publisher
@@ -86,9 +89,9 @@ scp -r code/publisher/ pi@picarx.local:/home/pi/
 ssh pi@picarx.local "sudo apt install -y python3-venv python3-full"
 ```
 
-3. Registe o serviço (cria/atualiza `.venv`, instala `requirements.txt`, copia o env de exemplo só se `/etc/default/...` ainda não existir, e desativa o outro publicador):
+3. Registre o serviço (cria/atualiza `.venv`, instala `requirements.txt`, copia o env de exemplo só se `/etc/default/...` ainda não existir, e desativa o outro publicador):
 
-**Local** (API a correr na própria Pi ou noutro host mas com URL local no env):
+**Local** (API em execução na própria Pi ou em outro host, mas com URL local no env):
 
 ```bash
 ssh pi@picarx.local "cd /home/pi/publisher && chmod +x install-systemd.sh && PROFILE=local ./install-systemd.sh"
@@ -100,11 +103,11 @@ ssh pi@picarx.local "cd /home/pi/publisher && chmod +x install-systemd.sh && PRO
 ssh pi@picarx.local "cd /home/pi/publisher && chmod +x install-systemd.sh && PROFILE=remote ./install-systemd.sh"
 ```
 
-Edite `PUBLISH_URL` em `/etc/default/picarx-dht22-publisher` (local) ou `/etc/default/picarx-dht22-remote-publisher` (remoto) se o instalador tiver criado o ficheiro com o placeholder do repositório.
+Edite `PUBLISH_URL` em `/etc/default/picarx-dht22-publisher` (local) ou `/etc/default/picarx-dht22-remote-publisher` (remoto) se o instalador tiver criado o arquivo com o placeholder do repositório.
 
 Logs: `journalctl -u picarx-dht22-local-publisher -f` ou `journalctl -u picarx-dht22-remote-publisher -f`.
 
-Da maquina de desenvolvimento, o script `scripts/update-picarx-fixed.sh` tambem envia os arquivos e registra o systemd na Pi.
+Da máquina de desenvolvimento, o script `scripts/update-picarx-fixed.sh` também envia os arquivos e registra o systemd na Pi.
 
 **Teste manual (sem systemd):**
 
@@ -126,7 +129,7 @@ docker compose up --build
 
 ## Deploy
 
-### Google Cloud App Engine (frontend estatico)
+### Google Cloud App Engine (frontend estático)
 
 O `app.yaml` referencia `frontend/dist`. Build e deploy a partir de `code/`:
 
@@ -135,7 +138,7 @@ cd code/frontend && npm install && npm run build && cd ..
 gcloud app deploy app.yaml
 ```
 
-Ou use `scripts/deploy-gcp.sh` a partir da raiz do repositorio.
+Ou use `scripts/deploy-gcp.sh` a partir da raiz do repositório.
 
 ### Outros scripts
 
@@ -148,9 +151,27 @@ Exemplos em `scripts/`:
 ## API principal
 
 - `GET /api/latest/{device_id}`: leitura mais recente.
-- `GET /api/history/{device_id}`: historico de leituras.
-- `GET /api/stats/{device_id}`: estatisticas agregadas.
+- `GET /api/history/{device_id}`: histórico de leituras.
+- `GET /api/stats/{device_id}`: estatísticas agregadas.
 
-## Documentacao adicional
+## Documentação adicional
 
-Em `docs/` e em `docs/backend/` (inclui material sobre modulo 5G / RM520N).
+Em `docs/` e em `docs/backend/` (inclui material sobre módulo 5G / RM520N).
+
+### Diagramas UML (PlantUML)
+
+Origem dos diagramas por idioma: `docs/uml/pt/`, `docs/uml/en/`, `docs/uml/es/` (mesmos ficheiros `.puml` traduzidos: contexto, containers, componentes do backend, papéis no repositório, implantação, sequência).
+
+Para gerar SVG e PDF com Docker:
+
+```bash
+./scripts/docs/export-uml-pdf.sh
+```
+
+Saída: `docs/dist/svg/{pt,en,es}/`, `docs/dist/pdf/{pt,en,es}/` e, por idioma, `docs/dist/pdf/<lang>/iot-monitoring-uml-combined.pdf`.
+
+Na SPA (`code/frontend`), a rota **`/documentation`** escolhe automaticamente o conjunto de SVG conforme o idioma (pt-BR → `public/uml/pt/`, English → `en/`, Español → `es/`). Depois de alterar os `.puml` e gerar os SVG:
+
+```bash
+cd code/frontend && npm run sync-uml
+```

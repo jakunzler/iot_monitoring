@@ -1,0 +1,40 @@
+@startuml 05-implantacao
+skinparam shadowing false
+
+title Deployment — examples (local Docker, edge, optional cloud)
+
+node "Development machine" as Dev {
+  artifact "docker compose\n(code/docker-compose.yml)" as DC
+  node "frontend container\n:3000→80" as Cfe
+  node "backend container\n:8080" as Cbe
+  artifact "volume backend → ./backend" as Vol
+}
+
+node "Raspberry Pi / PiCarX" as Pi {
+  artifact "venv + publish_picarx_dht22.py" as Agen
+  artifact "systemd unit\n(local or remote)" as Sysd
+}
+
+node "Cloud (optional)\nGCP Cloud Run / App Engine" as Cloud {
+  artifact "Docker images / static build" as Img
+}
+
+cloud "Network (LAN / Internet)" as Net
+
+Cfe -down- Cbe : bridge iot-network
+Vol .. Cbe
+DC .. Cfe
+DC .. Cbe
+
+Agen .. Net
+Cbe .. Net : **api/ingest** and **GET** data
+Sysd .. Agen : start / restart agent
+Img .. Net : same HTTP contract if remote deploy
+
+note bottom of Cloud
+  Frontend and backend may ship separately;
+  the Pi publisher uses **PUBLISH_URL**
+  pointing at the public endpoint or VPN.
+end note
+
+@enduml

@@ -27,22 +27,22 @@ const Home = () => {
     {
       icon: <Sensors sx={{ fontSize: 40 }} />,
       title: t('home.features.realtime'),
-      description: 'Monitoramento contínuo com atualizações em tempo real',
+      description: t('home.featureDescriptions.realtime'),
     },
     {
       icon: <Wifi sx={{ fontSize: 40 }} />,
       title: t('home.features.wireless'),
-      description: 'Comunicação sem fio via Wi-Fi e 5G para máxima flexibilidade',
+      description: t('home.featureDescriptions.wireless'),
     },
     {
       icon: <Speed sx={{ fontSize: 40 }} />,
       title: t('home.features.accurate'),
-      description: 'Sensor DHT22 com alta precisão e confiabilidade',
+      description: t('home.featureDescriptions.accurate'),
     },
     {
       icon: <ExpandMore sx={{ fontSize: 40 }} />,
       title: t('home.features.scalable'),
-      description: 'Arquitetura escalável para múltiplos dispositivos',
+      description: t('home.featureDescriptions.scalable'),
     },
   ];
 
@@ -109,6 +109,16 @@ const Home = () => {
               {t('home.cta.secondary')}
             </Button>
           </Box>
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Button
+              variant="text"
+              color="primary"
+              size="small"
+              onClick={() => navigate('/documentation')}
+            >
+              {t('home.cta.documentation')}
+            </Button>
+          </Box>
         </Box>
 
         {/* Features Section */}
@@ -167,10 +177,10 @@ const Home = () => {
           }}
         >
           <Typography variant="h4" component="h3" gutterBottom>
-            Tecnologia IoT Avançada
+            {t('home.banner.title')}
           </Typography>
           <Typography variant="body1" sx={{ mb: 3 }}>
-            Sistema de monitoramento baseado em ESP32, PiCarX, 5G e DHT22 para aplicações industriais e residenciais
+            {t('home.banner.subtitle')}
           </Typography>
           <Button
             variant="contained"
@@ -185,7 +195,7 @@ const Home = () => {
             }}
           >
             <TrendingUp sx={{ mr: 1 }} />
-            Ver Dados em Tempo Real
+            {t('home.banner.cta')}
           </Button>
         </Paper>
       </Container>

@@ -1,0 +1,35 @@
+@startuml 06-sequencia-dados
+skinparam sequenceMessageAlign center
+skinparam shadowing false
+
+title Secuencia — ingesta en el borde y consumo en el panel
+
+actor "Publicador\n(Pi / ESP)" as Pub
+participant "API Flask\n/api/ingest" as Api
+database "SQLite" as Db
+participant "SPA React\n(useRealtimeData)" as Spa
+actor "Usuario" as User
+
+== Ingesta periódica ==
+Pub -> Api : POST /api/ingest\n(device_id, sensor, data, metadata)
+activate Api
+Api -> Db : INSERT sensor_data
+Db --> Api : ok
+Api --> Pub : 200 JSON
+deactivate Api
+
+== Consulta desde el panel ==
+User -> Spa : abre la página del dispositivo
+activate Spa
+loop polling (p. ej., 5s)
+  Spa -> Api : GET /api/latest/{device_id}
+  activate Api
+  Api -> Db : SELECT última lectura
+  Db --> Api : registro
+  Api --> Spa : JSON
+  deactivate Api
+end
+Spa --> User : gráficos / valores
+deactivate Spa
+
+@enduml

@@ -1,0 +1,49 @@
+@startuml 04-papeis-repositorio
+' Esclarece papéis no repositório (evita confusão entre "scripts" e "componentes de produto")
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+title Papéis no repositório — o que é produto vs automação vs artefatos
+
+package "code/\n(implementação que roda em ambientes)" #E8F4FC {
+  package "frontend/" {
+    [App React\nSPA] as FE
+  }
+  package "backend/" {
+    [API Flask\nSQLite] as BE
+  }
+  package "publisher/" {
+    [Agente na Pi\nsystemd opcional] as PubCode
+  }
+}
+
+package "scripts/\n(automação: dev, CI, deploy, diagnóstico)" #FFF8E8 {
+  [deploy-*.sh, test-*.sh,\ndiagnose_*.sh, …] as Scr
+}
+
+package "docs/\n(documentação e diagramas)" #F0F0F0 {
+  [guias .md,\ndocs/uml/*.puml] as Doc
+}
+
+package "docs/dist/\n(gerado — não editar)" #EEEEEE {
+  [svg, pdf] as Dist
+}
+
+FE -[hidden]right- BE
+BE -[hidden]right- PubCode
+Scr ..> FE : automatiza build/deploy
+Scr ..> BE : automatiza build/deploy
+Scr ..> PubCode : opcional: sync para Pi
+Doc .. Dist : **export-uml-pdf.sh**\ngera PDFs a partir de .puml
+
+note right of Scr
+  Scripts **não** são o runtime IoT:
+  orquestram tarefas na máquina do dev ou em CI.
+end note
+
+note bottom of PubCode
+  Código de **borda**: corre no Raspberry / ambiente de teste,
+  não no mesmo processo que o Flask.
+end note
+
+@enduml

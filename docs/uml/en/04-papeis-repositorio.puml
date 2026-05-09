@@ -1,0 +1,48 @@
+@startuml 04-papeis-repositorio
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+title Repository roles — product vs automation vs artifacts
+
+package "code/\n(runs in target environments)" #E8F4FC {
+  package "frontend/" {
+    [React app\nSPA] as FE
+  }
+  package "backend/" {
+    [Flask API\nSQLite] as BE
+  }
+  package "publisher/" {
+    [Pi agent\noptional systemd] as PubCode
+  }
+}
+
+package "scripts/\n(automation: dev, CI, deploy, diagnostics)" #FFF8E8 {
+  [deploy-*.sh, test-*.sh,\ndiagnose_*.sh, ...] as Scr
+}
+
+package "docs/\n(guides & diagrams)" #F0F0F0 {
+  [*.md guides,\ndocs/uml/*.puml] as Doc
+}
+
+package "docs/dist/\n(generated — do not edit)" #EEEEEE {
+  [svg, pdf] as Dist
+}
+
+FE -[hidden]right- BE
+BE -[hidden]right- PubCode
+Scr ..> FE : build/deploy automation
+Scr ..> BE : build/deploy automation
+Scr ..> PubCode : optional: sync to Pi
+Doc .. Dist : **export-uml-pdf.sh**\nbuilds PDFs from .puml
+
+note right of Scr
+  Scripts are **not** the IoT runtime:
+  they orchestrate tasks on the dev machine or CI.
+end note
+
+note bottom of PubCode
+  **Edge** code: runs on the Raspberry / test rig,
+  not in the same process as Flask.
+end note
+
+@enduml

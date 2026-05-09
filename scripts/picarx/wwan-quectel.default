@@ -1,0 +1,22 @@
+# Copiar para /etc/default/wwan-quectel no PiCarX
+# Colunas: ver docs/picarx/MODEMMANAGER_RM520N_ROTEIRO.md
+
+# APN do core (Open5GS / operadora)
+APN=internet
+
+# Métrica da rota default pela wwan0 (menor número = mais prioritário).
+# 50 — 5G primeiro para destinos não locais (eth0 costuma ser 100, wlan0 600).
+# 1050 — preferir LAN para internet (útil em laboratório no portátil); não usar no Pi se quiseres UE primeiro.
+METRIC=50
+
+WWAN_IF=wwan0
+
+# Índices D-Bus (quase sempre 0 no primeiro modem / bearer)
+MODEM_INDEX=0
+BEARER_INDEX=0
+
+# Espera até mmcli -L mostrar modem (aprox. MM_TRIES * 2 s)
+MM_TRIES=40
+
+# Se 1, executa: nmcli device set wwan0 managed no (evita NM a disputar a interface)
+SET_NM_WWAN_UNMANAGED=0

@@ -1,0 +1,25 @@
+@startuml 01-contexto-sistema
+' Vista de contexto (caja negra)
+skinparam shadowing false
+skinparam rectangle {
+  roundCorner 10
+}
+title Vista de contexto — Sistema de monitoreo IoT\n(temperatura / humedad DHT22)
+
+actor "Operador / equipo\n(stakeholder)" as Ops
+actor "Vehículo / banco de pruebas\n(PiCarX: 5G Quectel RM520N-GL,\nWi-Fi como respaldo)" as Edge
+actor "Dispositivo ESP32\n(Wi-Fi y/o LoRa, opcional)" as Esp
+
+rectangle "Sistema de monitoreo IoT\n(repositorio: iot_monitoring)" as Sys #E8F4FC {
+}
+
+Ops --> Sys : consulta paneles e historial\n(navegador web)
+Edge --> Sys : envía lecturas HTTP (publicador)
+Esp --> Sys : envía lecturas HTTP (firmware / ingest)
+
+note right of Sys
+  El sistema expone una API REST y una interfaz web.
+  Persistencia local: SQLite en el servidor de la API.
+end note
+
+@enduml

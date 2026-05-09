@@ -1,0 +1,38 @@
+@startuml 02-containers-runtime
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+title Contenedores en ejecución — fronteras de despliegue lógico
+
+package "Borde (campo / laboratorio)" {
+  [Publicador DHT22\n(python: publish_picarx_dht22.py)] as Pub
+  [Sensor DHT22\n+ GPIO] as Sensor
+}
+
+package "Servidor de la API (host, VM o contenedor)" {
+  [Aplicación Flask\n(code/backend)] as Api
+  database "SQLite\n(dht22_data.db)" as Db
+}
+
+package "Cliente web" {
+  [SPA React + Vite\n(code/frontend)] as Spa
+}
+
+Sensor -down-> Pub : lecturas periódicas
+Pub -down-> Api : **POST** /api/ingest\n(JSON)
+Spa -right-> Api : **GET** /api/latest, /api/history,\n/api/stats, ...
+Api -down-> Db : lectura / escritura
+
+note bottom of Pub
+  La variable **PUBLISH_URL** define el destino
+  (local en la Pi o servidor remoto).
+  PiCarX: **5G Quectel RM520N-GL** como medio principal;
+  **Wi-Fi** como respaldo (fallback), si está configurado.
+end note
+
+note bottom of Spa
+  La SPA no accede a SQLite directamente:
+  siempre vía API HTTP (CORS habilitado).
+end note
+
+@enduml

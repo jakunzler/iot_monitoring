@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Card,
@@ -31,36 +31,35 @@ const DeviceSelector = ({ selectedDevice, onDeviceChange }) => {
     {
       id: 'ESP32-DHT22-Publisher',
       name: 'ESP32',
-      description: 'Sistema com ESP32 e DHT22',
-      technology: 'Wi-Fi',
+      description: t('deviceSelector.devices.esp32.description'),
+      technology: t('deviceSelector.devices.esp32.technology'),
       icon: <Wifi />,
       color: 'primary',
       route: '/dashboard/esp32',
       details: [
-        'Microcontrolador ESP32',
-        'Sensor DHT22 (Temperatura e Umidade)',
-        'Comunicação Wi-Fi',
-        'Servidor Flask',
-        'Banco SQLite'
-      ]
+        t('deviceSelector.devices.esp32.detail1'),
+        t('deviceSelector.devices.esp32.detail2'),
+        t('deviceSelector.devices.esp32.detail3'),
+        t('deviceSelector.devices.esp32.detail4'),
+        t('deviceSelector.devices.esp32.detail5'),
+      ],
     },
     {
       id: 'PiCarX-5G-Publisher',
       name: 'PiCarX',
-      description: 'Sistema com PiCarX e módulo 5G',
-      technology: '5G',
+      description: t('deviceSelector.devices.picarx.description'),
+      technology: t('deviceSelector.devices.picarx.technology'),
       icon: <PhoneAndroid />,
       color: 'secondary',
       route: '/dashboard/picarx',
       details: [
-        'Placa PiCarX',
-        'Sensor DHT22 (Temperatura e Umidade)',
-        'Módulo 5G FN990A40',
-        'Comunicação 5G',
-        'Servidor Flask',
-        'Banco SQLite'
-      ]
-    }
+        t('deviceSelector.devices.picarx.detail1'),
+        t('deviceSelector.devices.picarx.detail2'),
+        t('deviceSelector.devices.picarx.detail3'),
+        t('deviceSelector.devices.picarx.detail4'),
+        t('deviceSelector.devices.picarx.detail5'),
+      ],
+    },
   ];
 
   const handleDeviceSelect = (deviceId) => {
@@ -76,7 +75,6 @@ const DeviceSelector = ({ selectedDevice, onDeviceChange }) => {
 
   return (
     <Box sx={{ mb: 3 }}>
-      {/* Mensagem Explicativa */}
       <Alert severity="info" sx={{ mb: 3 }}>
         <AlertTitle>
           <Info sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -85,13 +83,12 @@ const DeviceSelector = ({ selectedDevice, onDeviceChange }) => {
         {t('deviceSelector.info.description')}
       </Alert>
 
-      {/* Seletor de Dispositivo */}
       <Card>
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
             {t('deviceSelector.title')}
           </Typography>
-          
+
           <FormControl component="fieldset">
             <FormLabel component="legend">
               {t('deviceSelector.subtitle')}
@@ -113,10 +110,10 @@ const DeviceSelector = ({ selectedDevice, onDeviceChange }) => {
                         <Typography variant="h6">
                           {device.name}
                         </Typography>
-                        <Chip 
-                          label={device.technology} 
-                          color={device.color} 
-                          size="small" 
+                        <Chip
+                          label={device.technology}
+                          color={device.color}
+                          size="small"
                         />
                       </Box>
                       <Box sx={{ ml: 2 }}>
@@ -135,18 +132,17 @@ const DeviceSelector = ({ selectedDevice, onDeviceChange }) => {
                       </Box>
                     </Box>
                   }
-                  sx={{ 
+                  sx={{
                     alignItems: 'flex-start',
                     '& .MuiFormControlLabel-label': {
-                      width: '100%'
-                    }
+                      width: '100%',
+                    },
                   }}
                 />
               ))}
             </RadioGroup>
           </FormControl>
-          
-          {/* Botão de Navegação */}
+
           <Box sx={{ mt: 3, textAlign: 'center' }}>
             <Button
               variant="contained"
@@ -154,13 +150,13 @@ const DeviceSelector = ({ selectedDevice, onDeviceChange }) => {
               endIcon={<ArrowForward />}
               onClick={handleNavigateToDashboard}
               disabled={!selectedDevice}
-              sx={{ 
+              sx={{
                 minWidth: 200,
                 py: 1.5,
-                fontSize: '1.1rem'
+                fontSize: '1.1rem',
               }}
             >
-              Acessar Dashboard
+              {t('deviceSelector.accessPanel')}
             </Button>
           </Box>
         </CardContent>

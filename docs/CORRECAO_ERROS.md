@@ -17,7 +17,7 @@
 ### 3. **Transition2 Component Error**
 - **Problema**: `An error occurred in the <Transition2> component`
 - **Causa**: Erro no componente Fade do Material-UI
-- **Solução**: Removido componentes Fade e simplificado a interface
+- **Solução**: Removidos componentes Fade e simplificada a interface
 - **Status**: ✅ **CORRIGIDO**
 
 ### 4. **Falta de Error Boundaries**

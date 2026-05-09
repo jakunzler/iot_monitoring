@@ -1,0 +1,48 @@
+@startuml 04-papeis-repositorio
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+title Roles en el repositorio — producto vs automatización vs artefactos
+
+package "code/\n(implementación que se ejecuta)" #E8F4FC {
+  package "frontend/" {
+    [App React\nSPA] as FE
+  }
+  package "backend/" {
+    [API Flask\nSQLite] as BE
+  }
+  package "publisher/" {
+    [Agente en la Pi\nsystemd opcional] as PubCode
+  }
+}
+
+package "scripts/\n(automatización: dev, CI, deploy, diagnóstico)" #FFF8E8 {
+  [deploy-*.sh, test-*.sh,\ndiagnose_*.sh, ...] as Scr
+}
+
+package "docs/\n(guías y diagramas)" #F0F0F0 {
+  [guías .md,\ndocs/uml/*.puml] as Doc
+}
+
+package "docs/dist/\n(generado — no editar)" #EEEEEE {
+  [svg, pdf] as Dist
+}
+
+FE -[hidden]right- BE
+BE -[hidden]right- PubCode
+Scr ..> FE : automatiza build/deploy
+Scr ..> BE : automatiza build/deploy
+Scr ..> PubCode : opcional: sync a la Pi
+Doc .. Dist : **export-uml-pdf.sh**\ngenera PDFs desde .puml
+
+note right of Scr
+  Los scripts **no** son el runtime IoT:
+  orquestan tareas en la máquina de desarrollo o en CI.
+end note
+
+note bottom of PubCode
+  Código de **borde**: corre en la Raspberry / entorno de prueba,
+  no en el mismo proceso que Flask.
+end note
+
+@enduml

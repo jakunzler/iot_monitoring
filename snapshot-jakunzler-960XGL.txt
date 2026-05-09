@@ -1,0 +1,201 @@
+HOST: jakunzler-960XGL
+DATE: 2026-05-09T12:55:34-03:00
+KERNEL: 6.8.0-110-generic
+==============================================
+### SO / release
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.4 LTS (Noble Numbat)"
+ID=ubuntu
+==============================================
+### USB Quectel
+Bus 004 Device 002: ID 2c7c:0801 Quectel Wireless Solutions Co., Ltd. RM520N-GL
+==============================================
+### Dispositivos QMI / serial
+crw-rw---- 1 root dialout 188, 0 May  9 12:54 /dev/ttyUSB0
+crw-rw---- 1 root dialout 188, 1 May  9 12:54 /dev/ttyUSB1
+crw-rw---- 1 root dialout 188, 2 May  9 12:54 /dev/ttyUSB2
+crw-rw---- 1 root dialout 188, 3 May  9 12:54 /dev/ttyUSB3
+==============================================
+### Driver / sysfs wwan (se existir)
+--- /sys/class/net/wwan0
+operstate: unknown
+raw_ip: Y
+==============================================
+### Interfaces (resumo)
+lo               UNKNOWN        00:00:00:00:00:00 <LOOPBACK,UP,LOWER_UP> 
+enx00e04c3623d7  UP             00:e0:4c:36:23:d7 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+wlo1             UP             9c:67:d6:b3:30:c6 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+virbr0           DOWN           52:54:00:6a:f9:3a <NO-CARRIER,BROADCAST,MULTICAST,UP> 
+gnbaccess@wlo1   UP             2e:a6:f5:f2:54:52 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+access@wlo1      UP             92:e9:15:d8:b2:3d <BROADCAST,MULTICAST,UP,LOWER_UP> 
+core@wlo1        UP             8a:28:8c:3a:08:b6 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+docker0          DOWN           a6:00:67:0f:ee:a3 <NO-CARRIER,BROADCAST,MULTICAST,UP> 
+br-3e7534e633c8  UP             56:35:fd:22:a4:c2 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+br-950da3f8523a  DOWN           82:42:fe:d9:9b:d3 <NO-CARRIER,BROADCAST,MULTICAST,UP> 
+veth475b036@if2  UP             3e:01:7a:7c:01:95 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+veth32aaa2b@if2  UP             de:4b:d5:4f:6e:8d <BROADCAST,MULTICAST,UP,LOWER_UP> 
+veth6b92d30@if2  UP             4a:6f:5a:8b:04:3e <BROADCAST,MULTICAST,UP,LOWER_UP> 
+veth3a77479@if2  UP             9e:57:2a:e9:91:82 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+vethff6a786@if2  UP             96:e6:55:63:14:b8 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+vethb60f2f9@if2  UP             72:10:13:70:d6:72 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+veth5aa17db@if2  UP             5e:54:d5:e3:8b:95 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+vethc6495fc@if2  UP             a2:22:39:f7:3b:10 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+calid938259025a@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali00badc441b8@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali9e9558f3468@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+calica3f29f17cd@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali7d12b96e25c@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali2c4517c30e8@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+calif5a0ebd2590@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali33621466c6e@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+calibbf7e2477b0@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali41a7d0ef901@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali3cc4a1a67c4@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+calif7cbc653c7c@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali6620614fcb2@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+calie787a6ec469@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali67ec5bc731e@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+caliad29dadfb9b@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+calicab6d35daaa@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali158d205bf8c@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+calia39b046f5b8@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+cali7642deed4ea@if2 UP             ee:ee:ee:ee:ee:ee <BROADCAST,MULTICAST,UP,LOWER_UP> 
+calidaecdafdf5f@if2 UP             16:22:98:16:75:6f <BROADCAST,MULTICAST,UP,LOWER_UP> 
+flannel.1        UNKNOWN        da:b1:e9:55:3b:f9 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+wwan0            UNKNOWN        <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> 
+==============================================
+### IPv4 wwan0 / usb0
+--- wwan0
+89: wwan0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1400 qdisc fq_codel state UNKNOWN group default qlen 1000
+    inet 10.45.0.8/28 brd 10.45.0.15 scope global noprefixroute wwan0
+       valid_lft forever preferred_lft forever
+==============================================
+### Rotas default
+default via 172.16.2.254 dev enx00e04c3623d7 proto dhcp src 172.16.3.5 metric 100 
+default via 192.168.0.1 dev wlo1 proto dhcp src 192.168.0.127 metric 600 
+default via 10.45.0.9 dev wwan0 proto static metric 1050 
+==============================================
+### ModemManager
+active: yes
+● ModemManager.service - Modem Manager
+     Loaded: loaded (/usr/lib/systemd/system/ModemManager.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-05-09 09:46:42 -03; 3h 8min ago
+   Main PID: 1662 (ModemManager)
+      Tasks: 7 (limit: 37804)
+     Memory: 12.8M (peak: 13.5M)
+        CPU: 540ms
+     CGroup: /system.slice/ModemManager.service
+             ├─  1662 /usr/sbin/ModemManager
+             └─523541 /usr/libexec/qmi-proxy
+
+May 09 12:54:48 jakunzler-960XGL ModemManager[1662]: <msg> [modem0/bearer0] QMI IPv4 Settings:
+May 09 12:54:48 jakunzler-960XGL ModemManager[1662]: <msg> [modem0/bearer0]     address: 10.45.0.8/28
+May 09 12:54:48 jakunzler-960XGL ModemManager[1662]: <msg> [modem0/bearer0]     gateway: 10.45.0.9
+May 09 12:54:48 jakunzler-960XGL ModemManager[1662]: <msg> [modem0/bearer0]     DNS #1: 8.8.8.8
+--- mmcli -L
+    /org/freedesktop/ModemManager1/Modem/0 [Quectel] RM520N-GL
+--- mmcli -m 0 (exceto números sensíveis em copiar)
+  -----------------------------------
+  General  |                    path: /org/freedesktop/ModemManager1/Modem/0
+           |               device id: befecbb3e9d83901cb8672b0f4f098ec144490cf
+  -----------------------------------
+  Hardware |            manufacturer: Quectel
+           |                   model: RM520N-GL
+           |       firmware revision: RM520NGLAAR01A08M4G
+           |          carrier config: ROW_Commercial
+           | carrier config revision: 0A010809
+           |            h/w revision: 20000
+           |               supported: gsm-umts, lte, 5gnr
+           |                 current: gsm-umts, lte, 5gnr
+           |            equipment id: 868371051399760
+  -----------------------------------
+  System   |                  device: /sys/devices/pci0000:00/0000:00:14.0/usb4/4-2
+           |                 physdev: /sys/devices/pci0000:00/0000:00:14.0/usb4/4-2
+           |                 drivers: qmi_wwan, option
+           |                  plugin: quectel
+           |            primary port: cdc-wdm1
+           |                   ports: cdc-wdm1 (qmi), ttyUSB0 (ignored), ttyUSB1 (gps), 
+           |                          ttyUSB2 (at), ttyUSB3 (at), wwan0 (net)
+  -----------------------------------
+  Numbers  |                     own: 00000814
+  -----------------------------------
+  Status   |                    lock: sim-pin2
+           |          unlock retries: sim-pin (3), sim-puk (10), sim-pin2 (3), sim-puk2 (10)
+           |                   state: [32mconnected[0m
+           |             power state: on
+           |             access tech: 5gnr
+           |          signal quality: 44% (recent)
+  -----------------------------------
+  Modes    |               supported: allowed: 3g; preferred: none
+           |                          allowed: 4g; preferred: none
+           |                          allowed: 3g, 4g; preferred: 4g
+           |                          allowed: 3g, 4g; preferred: 3g
+           |                          allowed: 5g; preferred: none
+           |                          allowed: 4g, 5g; preferred: 5g
+           |                          allowed: 4g, 5g; preferred: 4g
+           |                          allowed: 3g, 5g; preferred: 5g
+           |                          allowed: 3g, 5g; preferred: 3g
+           |                          allowed: 3g, 4g, 5g; preferred: 5g
+           |                          allowed: 3g, 4g, 5g; preferred: 4g
+           |                          allowed: 3g, 4g, 5g; preferred: 3g
+           |                 current: allowed: 3g, 4g, 5g; preferred: 5g
+  -----------------------------------
+  Bands    |               supported: utran-1, utran-4, utran-6, utran-5, utran-8, utran-2, 
+           |                          eutran-1, eutran-2, eutran-3, eutran-4, eutran-5, eutran-7, eutran-8, 
+           |                          eutran-12, eutran-13, eutran-14, eutran-17, eutran-18, eutran-19, 
+           |                          eutran-20, eutran-25, eutran-26, eutran-28, eutran-29, eutran-30, 
+           |                          eutran-32, eutran-34, eutran-38, eutran-39, eutran-40, eutran-41, 
+           |                          eutran-42, eutran-43, eutran-46, eutran-48, eutran-66, eutran-71, 
+           |                          utran-19, ngran-1, ngran-2, ngran-3, ngran-5, ngran-7, ngran-8, 
+           |                          ngran-12, ngran-13, ngran-14, ngran-18, ngran-20, ngran-25, ngran-26, 
+           |                          ngran-28, ngran-29, ngran-30, ngran-38, ngran-40, ngran-41, ngran-48, 
+           |                          ngran-66, ngran-70, ngran-71, ngran-75, ngran-76, ngran-77, ngran-78, 
+           |                          ngran-79
+           |                 current: utran-1, utran-4, utran-5, utran-8, utran-2, eutran-1, 
+           |                          eutran-2, eutran-3, eutran-4, eutran-5, eutran-7, eutran-8, 
+           |                          eutran-12, eutran-13, eutran-14, eutran-17, eutran-18, eutran-19, 
+           |                          eutran-20, eutran-25, eutran-26, eutran-28, eutran-29, eutran-30, 
+           |                          eutran-32, eutran-34, eutran-38, eutran-39, eutran-40, eutran-41, 
+           |                          eutran-42, eutran-43, eutran-46, eutran-48, eutran-66, eutran-71, 
+           |                          utran-19, ngran-1, ngran-2, ngran-3, ngran-5, ngran-7, ngran-8, 
+           |                          ngran-12, ngran-13, ngran-14, ngran-18, ngran-20, ngran-25, ngran-26, 
+           |                          ngran-28, ngran-29, ngran-30, ngran-38, ngran-40, ngran-41, ngran-48, 
+           |                          ngran-66, ngran-70, ngran-71, ngran-75, ngran-76, ngran-77, ngran-78, 
+           |                          ngran-79
+  -----------------------------------
+  IP       |               supported: ipv4, ipv6, ipv4v6
+  -----------------------------------
+  3GPP     |                    imei: 868371051399760
+           |           enabled locks: fixed-dialing
+           |             operator id: 00101
+           |           operator name: Test PLMN 1-1
+           |            registration: home
+           |    packet service state: attached
+  -----------------------------------
+  3GPP EPS |    ue mode of operation: csps-2
+           |  initial bearer ip type: ipv4v6
+  -----------------------------------
+==============================================
+### qmicli (precisa /dev/cdc-wdm0 e sudo para a maioria)
+qmicli ou /dev/cdc-wdm0 indisponível — salta QMI
+==============================================
+### Pacotes relevantes (dpkg)
+ii  libqmi-utils   1.35.2-0ubuntu2 amd64        Utilities to use the QMI protocol from the command line
+ii  modemmanager   1.23.4-0ubuntu2 amd64        D-Bus service for managing modems
+ii  minicom        2.9-4        amd64        Friendly menu driven serial communication program
+ii  libmbim-utils  1.31.2-0ubuntu3.1 amd64        Utilities to use the MBIM protocol from the command line
+==============================================
+### Próximo passo manual (minicom, MESMA porta AT nos dois — ex. ttyUSB2)
+Correr e anexar ao relatório:
+  ATI
+  AT+QCFG="usbnet"
+  AT+CGDCONT?
+  AT+C5GREG?
+
+Alvo de alinhamento típico:
+  1) Mesma revisão firmware (ATI) se possível
+  2) Mesmo AT+QCFG="usbnet" (ex. 3=QMI em ambos para wwan0 + qmicli)
+  3) Mesmo APN no contexto 1 (+CGDCONT) e no qmi-network.conf / qmicli
+  4) No Pi: evitar dois clientes QMI a competir — preferir qmi-network OU MM, não qmicli start+exit solto
+==============================================

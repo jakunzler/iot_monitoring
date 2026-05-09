@@ -18,12 +18,13 @@ import {
   CheckCircle,
   Error as ErrorIcon,
 } from '@mui/icons-material';
+import { getApiBaseUrl } from '../config/env';
 
 /**
  * Componente para limpar banco de dados com confirmação
  */
 export const ClearDatabaseButton = ({ 
-  baseUrl = 'http://200.137.220.50:8080',
+  baseUrl = getApiBaseUrl(),
   onClearSuccess,
   onClearError 
 }) => {
@@ -191,7 +192,7 @@ export const ClearDatabaseButton = ({
 /**
  * Hook para gerenciar estado após limpeza
  */
-export const useClearDatabase = (baseUrl = 'http://200.137.220.50:8080') => {
+export const useClearDatabase = (baseUrl = getApiBaseUrl()) => {
   const [isClearing, setIsClearing] = useState(false);
 
   const clearDatabase = async () => {

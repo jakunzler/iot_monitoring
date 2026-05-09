@@ -4,7 +4,7 @@ Este documento descreve como fazer o deploy do servidor DHT22 no Google Cloud Ru
 
 **Caminhos no repositório:** o `Dockerfile.cloudrun` e o código copiados estão sob **`iot_monitoring/code/`**. Os scripts de exemplo (`deploy-cloudrun.sh`, `update-picarx-cloudrun.sh`) ficam na raiz em **`scripts/`** e fazem `cd` para `code/` quando aplicável.
 
-A entrada da imagem Cloud Run usa **`backend/deprecated/server_cloudrun.py`** (copiado para `server.py` na imagem); o backend quotidiano em VM permanece **`code/backend/server.py`** / **`server_production.py`**.
+A entrada da imagem Cloud Run usa **`backend/deprecated/server_cloudrun.py`** (copiado para `server.py` na imagem); o backend cotidiano em VM permanece **`code/backend/server.py`** / **`server_production.py`**.
 
 ## 📋 Pré-requisitos
 
@@ -18,7 +18,7 @@ A entrada da imagem Cloud Run usa **`backend/deprecated/server_cloudrun.py`** (c
 ### 1. Configurar o Projeto
 
 ```bash
-# Editar (ficheiro dentro de code/)
+# Editar (arquivo dentro de code/)
 nano ../code/cloudrun-config.env
 
 # Substituir "your-project-id" pelo seu Project ID real

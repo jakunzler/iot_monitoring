@@ -1,0 +1,37 @@
+@startuml 03-componentes-backend
+' Componentes UML do backend Flask (responsabilidades internas)
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+title Componentes — backend Flask (`code/backend/server.py` e produção)
+
+component [Flask App\n(CORS)] as Flask
+
+interface "HTTP / JSON" as HTTP
+
+component [Rotas de ingestão\nPOST /api/ingest] as Ingest
+component [Rotas de consulta\nGET /api/latest/{id}\nGET /api/history/{id}\nGET /api/stats/{id}] as Query
+component [Manutenção\nPOST /api/clear] as Clear
+component [UI legada opcional\nGET / (dashboard HTML)] as LegacyUi
+component [Camada de persistência\nsqlite3] as Repo
+database "Arquivo SQLite" as File
+
+HTTP - Flask
+Flask -down- Ingest
+Flask -down- Query
+Flask -down- Clear
+Flask -down- LegacyUi
+Ingest -down-> Repo : INSERT
+Query -down-> Repo : SELECT
+Clear -down-> Repo : DELETE / rotinas de limpeza
+LegacyUi ..> Repo : não obrigatório\n(rotas separadas)
+
+Repo -right- File
+
+note right of Ingest
+  Suporta payload "aninhado"
+  (sensor + data) e formato legado
+  no nível raiz.
+end note
+
+@enduml

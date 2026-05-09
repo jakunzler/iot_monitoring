@@ -18,14 +18,15 @@
   "navigation": {
     "home": "Home",
     "dashboard": "Dashboard",
+    "documentation": "Documentation",
     "project": "Project",
     "about": "About",
     "contact": "Contact"
   },
   "home": {
     "title": "IoT Monitoring System",
-    "subtitle": "Real-time temperature and humidity monitoring with ESP32 and DHT22",
-    "description": "Advanced remote sensing system using IoT technology for real-time environmental monitoring.",
+    "subtitle": "Real-time monitoring with PiCarX (Quectel RM520N-GL 5G), ESP32 (Wi-Fi / LoRa) and DHT22",
+    "description": "Environmental telemetry: PiCarX favors 5G via RM520N-GL with Wi-Fi fallback; ESP32 may use Wi-Fi and LoRa depending on firmware and hardware.",
     "features": {
       "title": "Key Features",
       "realtime": "Real-time Data",
@@ -34,8 +35,52 @@
       "scalable": "Scalable"
     },
     "cta": {
-      "primary": "View Dashboard",
-      "secondary": "Learn More"
+      "primary": "View dashboard",
+      "secondary": "Learn more",
+      "documentation": "Architecture & UML documentation"
+    },
+    "featureDescriptions": {
+      "realtime": "Continuous monitoring with real-time updates",
+      "wireless": "PiCarX: Quectel RM520N-GL as the primary path (5G), Wi-Fi as fallback. ESP32: Wi-Fi and LoRa as deployed.",
+      "accurate": "DHT22 sensor with high accuracy and reliability",
+      "scalable": "Scalable architecture for multiple devices"
+    },
+    "banner": {
+      "title": "Advanced IoT technology",
+      "subtitle": "ESP32 (Wi-Fi and LoRa), PiCarX with Quectel RM520N-GL (5G preferred, Wi-Fi fallback) and DHT22.",
+      "cta": "View live data"
+    }
+  },
+  "documentation": {
+    "pageTitle": "Platform documentation",
+    "pageSubtitle": "UML views for engineering teams and stakeholders: context, runtime containers, API components, repository roles, deployment, and data flow.",
+    "intro": "These diagrams clarify responsibilities and boundaries between the edge (publisher and sensor), the web API, storage (SQLite on the server), and this UI. The dashboard only uses HTTP and never talks to the database directly.",
+    "syncNote": "Feel free to explore the diagrams and the platform documentation. If you have any questions, please contact the development team at k_jonasaugusto@ufg.br.",
+    "diagrams": {
+      "context": {
+        "title": "1. System context",
+        "description": "External actors (operators, PiCarX with RM520N-GL 5G / Wi-Fi, ESP32 with Wi-Fi and/or LoRa) and the IoT monitoring system as a black box."
+      },
+      "containers": {
+        "title": "2. Runtime containers",
+        "description": "Edge publisher, Flask app, SQLite file, and the React SPA — logical boundaries and HTTP/JSON interaction."
+      },
+      "backendComponents": {
+        "title": "3. Backend components (Flask)",
+        "description": "Ingest routes, query routes, maintenance, optional legacy HTML UI, and the sqlite3 layer over the database file."
+      },
+      "repositoryRoles": {
+        "title": "4. Repository roles",
+        "description": "How product code (code/), automation scripts (scripts/), and docs relate — the IoT runtime is not the same as deploy/CI scripts."
+      },
+      "deployment": {
+        "title": "5. Deployment",
+        "description": "Examples: Docker Compose for dev, the Raspberry Pi agent, and optional cloud hosting (same HTTP contract)."
+      },
+      "sequence": {
+        "title": "6. Sequence — data flow",
+        "description": "Periodic ingestion (POST /api/ingest) and dashboard reads (GET /api/latest/…, polling)."
+      }
     }
   },
   "dashboard": {
@@ -77,16 +122,22 @@
     "description": "IoT monitoring system developed for demonstration of remote sensing technologies.",
     "components": {
       "title": "Components",
-      "esp32": "ESP32 - Microcontroller",
+      "esp32": "ESP32 - Wi-Fi and LoRa",
+      "picarx": "PiCarX - Raspberry Pi",
+      "rm520n": "Quectel RM520N-GL - 5G modem",
+      "lora": "LoRa - RF link (ESP32)",
       "dht22": "DHT22 - Temperature and Humidity Sensor",
-      "wifi": "Wi-Fi - Communication",
+      "wifi": "Wi-Fi - fallback (PiCarX) or primary (ESP32)",
       "server": "Web Server - Data Processing"
     },
     "architecture": {
       "title": "Architecture",
       "sensor": "DHT22 Sensor",
-      "microcontroller": "ESP32 Microcontroller",
-      "communication": "Wi-Fi Communication",
+      "picarx": "PiCarX - Raspberry Pi",
+      "rm520n": "Quectel RM520N-GL",
+      "lora": "LoRa (ESP32)",
+      "microcontroller": "Raspberry Pi 4 / ESP32",
+      "communication": "5G preferred (RM520N-GL) with Wi-Fi fallback on PiCarX; Wi-Fi and LoRa on ESP32",
       "server": "Flask Server",
       "database": "SQLite Database",
       "frontend": "React Web Interface"
@@ -105,9 +156,46 @@
     "title": "Select Data Source",
     "subtitle": "Choose the device for monitoring:",
     "info": {
-      "title": "Two Implemented Projects",
-      "description": "This system supports two different projects: one with ESP32 using Wi-Fi and another with PiCarX using 5G FN990A40 module. Both use the same DHT22 sensor for temperature and humidity measurement."
+      "title": "Two implemented setups",
+      "description": "The same backend accepts reads from ESP32 (Wi-Fi and/or LoRa, depending on your firmware) and from PiCarX with the Quectel RM520N-GL 5G modem—traffic prefers 5G, Wi-Fi is the fallback. Both use the DHT22 sensor."
+    },
+    "accessPanel": "Open dashboard",
+    "devices": {
+      "esp32": {
+        "description": "ESP32 with DHT22; Wi-Fi and/or LoRa connectivity.",
+        "technology": "Wi-Fi / LoRa",
+        "detail1": "ESP32 microcontroller",
+        "detail2": "DHT22 sensor (temperature and humidity)",
+        "detail3": "Connectivity: Wi-Fi and LoRa (depending on firmware and hardware)",
+        "detail4": "HTTP ingest to the Flask API",
+        "detail5": "SQLite storage on the server"
+      },
+      "picarx": {
+        "description": "PiCarX with DHT22 and Quectel RM520N-GL (5G preferred; Wi-Fi as alternative).",
+        "technology": "5G · Wi-Fi",
+        "detail1": "PiCarX platform (Raspberry Pi)",
+        "detail2": "Quectel RM520N-GL 5G modem",
+        "detail3": "Traffic prefers 5G; Wi-Fi fallback when applicable",
+        "detail4": "DHT22 sensor (temperature and humidity)",
+        "detail5": "Same Flask API and server-side SQLite"
+      }
     }
+  },
+  "chartAxis": {
+    "title": "Y-axis range",
+    "tempMin": "Temp. min (°C)",
+    "tempMax": "Temp. max (°C)",
+    "humMin": "Hum. min (%)",
+    "humMax": "Hum. max (%)",
+    "reset": "Reset to defaults"
+  },
+  "piCarxDashboard": {
+    "waitingAlertTitle": "Waiting for PiCarX data",
+    "waitingAlertIntro": "The PiCarX has not sent readings yet. Check:",
+    "waitingBullet1": "Quectel RM520N-GL has mobile data and a route to the internet",
+    "waitingBullet2": "Wi-Fi is available on the Pi as an alternative to 5G (fallback), if configured",
+    "waitingBullet3": "Publisher service/script is running",
+    "waitingBullet4": "API URL (PUBLISH_URL) points to the correct server"
   },
   "errors": {
     "network": "Server connection error",

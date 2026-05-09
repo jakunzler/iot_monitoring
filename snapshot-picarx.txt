@@ -1,0 +1,66 @@
+HOST: picarx
+DATE: 2026-05-09T16:51:10+01:00
+KERNEL: 6.12.62+rpt-rpi-v8
+==============================================
+### SO / release
+NAME="Debian GNU/Linux"
+VERSION_ID="12"
+VERSION="12 (bookworm)"
+ID=debian
+==============================================
+### USB Quectel
+Bus 002 Device 005: ID 2c7c:0801 Quectel Wireless Solutions Co., Ltd. RM520N-GL
+==============================================
+### Dispositivos QMI / serial
+crw------- 1 root root 180, 176 May  9 16:46 /dev/cdc-wdm0
+crw-rw---- 1 root dialout 188, 0 May  9 16:46 /dev/ttyUSB0
+crw-rw---- 1 root dialout 188, 1 May  9 16:46 /dev/ttyUSB1
+crw-rw---- 1 root dialout 188, 2 May  9 16:46 /dev/ttyUSB2
+crw-rw---- 1 root dialout 188, 3 May  9 16:46 /dev/ttyUSB3
+==============================================
+### Driver / sysfs wwan (se existir)
+--- /sys/class/net/wwan0
+operstate: down
+raw_ip: N
+==============================================
+### Interfaces (resumo)
+lo               UNKNOWN        00:00:00:00:00:00 <LOOPBACK,UP,LOWER_UP> 
+eth0             UP             d8:3a:dd:23:68:c5 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+wlan0            UP             d8:3a:dd:23:68:c6 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+wwan0            DOWN           1a:cb:ca:14:f3:8a <BROADCAST,MULTICAST> 
+==============================================
+### IPv4 wwan0 / usb0
+--- wwan0
+==============================================
+### Rotas default
+default via 172.16.2.254 dev eth0 proto dhcp src 172.16.2.222 metric 100 
+default via 192.168.0.1 dev wlan0 proto dhcp src 192.168.0.172 metric 600 
+==============================================
+### ModemManager
+active: no (ou unit não instalada)
+==============================================
+### qmicli (precisa /dev/cdc-wdm0 e sudo para a maioria)
+(device-version falhou)
+--- packet service status
+[/dev/cdc-wdm0] Connection status: 'disconnected'
+--- get current settings (pode OutOfCall se sem sessão)
+==============================================
+### Pacotes relevantes (dpkg)
+ii  libqmi-utils   1.32.2-1     arm64        Utilities to use the QMI protocol from the command line
+rc  modemmanager   1.20.4-1     arm64        D-Bus service for managing modems
+ii  minicom        2.8-2        arm64        Friendly menu driven serial communication program
+ii  libmbim-utils  1.28.2-1     arm64        Utilities to use the MBIM protocol from the command line
+==============================================
+### Próximo passo manual (minicom, MESMA porta AT nos dois — ex. ttyUSB2)
+Correr e anexar ao relatório:
+  ATI
+  AT+QCFG="usbnet"
+  AT+CGDCONT?
+  AT+C5GREG?
+
+Alvo de alinhamento típico:
+  1) Mesma revisão firmware (ATI) se possível
+  2) Mesmo AT+QCFG="usbnet" (ex. 3=QMI em ambos para wwan0 + qmicli)
+  3) Mesmo APN no contexto 1 (+CGDCONT) e no qmi-network.conf / qmicli
+  4) No Pi: evitar dois clientes QMI a competir — preferir qmi-network OU MM, não qmicli start+exit solto
+==============================================

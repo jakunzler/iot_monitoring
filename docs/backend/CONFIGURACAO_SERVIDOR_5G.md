@@ -54,12 +54,12 @@ Este script irá:
 ### 2. Atualização da Configuração do Módulo 5G
 
 ```bash
-# No clone do repositorio (não obrigatoriamente na Pi)
+# No clone do repositório (não necessariamente na Pi)
 cd /caminho/para/iot_monitoring/code/publisher/deprecated
 python3 setup_module_5g.py
 ```
 
-Este script (legado) pode referenciar ficheiros antigos; o fluxo atual na Pi usa `code/publisher/publish_picarx_dht22.py` + `systemd` + `/etc/default/picarx-dht22-publisher`. Historicamente fazia também:
+Este script (legado) pode referenciar arquivos antigos; o fluxo atual na Pi usa `code/publisher/publish_picarx_dht22.py` + `systemd` + `/etc/default/picarx-dht22-publisher`. Historicamente fazia também:
 - Ajustes de `PUBLISH_URL` no publisher
 - Criar arquivo `.env` com configurações
 - Criar script de teste de conectividade

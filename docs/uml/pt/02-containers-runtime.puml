@@ -1,0 +1,39 @@
+@startuml 02-containers-runtime
+' Diagrama de containers: principais aplicações em execução e suas responsabilidades
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+title Containers em tempo de execução — fronteiras de implantação lógica
+
+package "Borda (campo / laboratório)" {
+  [Publicador DHT22\n(python: publish_picarx_dht22.py)] as Pub
+  [Sensor DHT22\n+ GPIO] as Sensor
+}
+
+package "Servidor da API (host, VM ou container)" {
+  [Aplicação Flask\n(code/backend)] as Api
+  database "SQLite\n(dht22_data.db)" as Db
+}
+
+package "Cliente web" {
+  [SPA React + Vite\n(code/frontend)] as Spa
+}
+
+Sensor -down-> Pub : leituras periódicas
+Pub -down-> Api : **POST** /api/ingest\n(JSON)
+Spa -right-> Api : **GET** /api/latest, /api/history,\n/api/stats, …
+Api -down-> Db : leitura / escrita
+
+note bottom of Pub
+  Variável **PUBLISH_URL** define o destino
+  (local na Pi ou servidor remoto).
+  PiCarX: **5G Quectel RM520N-GL** como meio principal;
+  **Wi-Fi** como alternativa (fallback), se configurado.
+end note
+
+note bottom of Spa
+  O SPA não acessa o SQLite diretamente:
+  sempre via API HTTP (CORS habilitado).
+end note
+
+@enduml

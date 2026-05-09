@@ -1,0 +1,36 @@
+@startuml 06-sequencia-dados
+' Diagrama de sequência: fluxo principal de dados (ingestão + leitura pelo dashboard)
+skinparam sequenceMessageAlign center
+skinparam shadowing false
+
+title Sequência — ingestão na borda e consumo pelo dashboard
+
+actor "Publicador\n(Pi / ESP)" as Pub
+participant "API Flask\n/api/ingest" as Api
+database "SQLite" as Db
+participant "SPA React\n(useRealtimeData)" as Spa
+actor "Utilizador" as User
+
+== Ingestão periódica ==
+Pub -> Api : POST /api/ingest\n(device_id, sensor, data, metadata)
+activate Api
+Api -> Db : INSERT sensor_data
+Db --> Api : ok
+Api --> Pub : 200 JSON
+deactivate Api
+
+== Consulta pelo dashboard ==
+User -> Spa : abre página do dispositivo
+activate Spa
+loop polling (ex.: 5s)
+  Spa -> Api : GET /api/latest/{device_id}
+  activate Api
+  Api -> Db : SELECT última leitura
+  Db --> Api : registo
+  Api --> Spa : JSON
+  deactivate Api
+end
+Spa --> User : gráficos / valores
+deactivate Spa
+
+@enduml

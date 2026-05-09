@@ -37,6 +37,11 @@ import { LoadingSpinner, CardLoading, ChartLoading } from '../components/Loading
 import { ConnectionStatus, RealtimeIndicator } from '../components/ConnectionStatus';
 import { ClearDatabaseButton } from '../components/ClearDatabaseButton';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { formatUptimeSeconds } from '../utils/formatUptime';
+import { resolveConnectionLabel, resolveModuleLabel } from '../utils/deviceMetadataDisplay';
+import { getApiBaseUrl } from '../config/env';
+import { usePersistedChartAxisRanges } from '../hooks/usePersistedChartAxisRanges';
+import { ChartAxisRangeControls } from '../components/ChartAxisRangeControls';
 
 ChartJS.register(
   CategoryScale,
@@ -52,7 +57,7 @@ const PiCarXDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const DEVICE_ID = 'PiCarX-RM520N-DHT22';
-  const API_BASE_URL = 'http://200.137.220.50:8080';
+  const API_BASE_URL = getApiBaseUrl();
   
   const {
     data,
@@ -69,12 +74,14 @@ const PiCarXDashboard = () => {
   const [stats, setStats] = useState(null);
   const [isPolling, setIsPolling] = useState(true);
 
-  // Buscar estatísticas quando os dados carregam
+  const { ranges: chartAxisRanges, setRanges: setChartAxisRanges, reset: resetChartAxisRanges } =
+    usePersistedChartAxisRanges(`iot-chart-axes-${DEVICE_ID}`);
+
+  // Estatísticas: atualizar sempre que houver nova leitura (mesmo ritmo do poll)
   useEffect(() => {
-    if (data && !stats) {
-      fetchStats().then(setStats).catch(console.error);
-    }
-  }, [data, stats, fetchStats]);
+    if (!data) return;
+    fetchStats().then(setStats).catch(console.error);
+  }, [data, fetchStats]);
 
   // Dados do gráfico otimizados com useMemo
   const chartData = useMemo(() => {
@@ -109,68 +116,71 @@ const PiCarXDashboard = () => {
     };
   }, [history]);
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Histórico de Temperatura e Umidade - PiCarX',
-      },
-    },
-    scales: {
-      y: {
-        type: 'linear',
-        display: true,
-        position: 'left',
-        min: 20,
-        max: 40,
+  const chartOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
         title: {
           display: true,
-          text: 'Temperatura (°C)',
-          color: 'rgb(75, 192, 192)',
-        },
-        ticks: {
-          color: 'rgb(75, 192, 192)',
-          stepSize: 2,
-        },
-        grid: {
-          color: 'rgba(75, 192, 192, 0.1)',
+          text: 'Histórico de Temperatura e Umidade - PiCarX',
         },
       },
-      y1: {
-        type: 'linear',
-        display: true,
-        position: 'right',
-        min: 0,
-        max: 100,
-        title: {
+      scales: {
+        y: {
+          type: 'linear',
           display: true,
-          text: 'Umidade (%)',
-          color: 'rgb(54, 162, 235)',
+          position: 'left',
+          min: chartAxisRanges.tempMin,
+          max: chartAxisRanges.tempMax,
+          title: {
+            display: true,
+            text: 'Temperatura (°C)',
+            color: 'rgb(75, 192, 192)',
+          },
+          ticks: {
+            color: 'rgb(75, 192, 192)',
+            maxTicksLimit: 8,
+          },
+          grid: {
+            color: 'rgba(75, 192, 192, 0.1)',
+          },
         },
-        ticks: {
-          color: 'rgb(54, 162, 235)',
-          stepSize: 10,
-        },
-        grid: {
-          drawOnChartArea: false,
-        },
-      },
-      x: {
-        title: {
+        y1: {
+          type: 'linear',
           display: true,
-          text: 'Tempo',
+          position: 'right',
+          min: chartAxisRanges.humMin,
+          max: chartAxisRanges.humMax,
+          title: {
+            display: true,
+            text: 'Umidade (%)',
+            color: 'rgb(54, 162, 235)',
+          },
+          ticks: {
+            color: 'rgb(54, 162, 235)',
+            maxTicksLimit: 8,
+          },
+          grid: {
+            drawOnChartArea: false,
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Tempo',
+          },
         },
       },
-    },
-    animation: {
-      duration: 750,
-    },
-  };
+      animation: {
+        duration: 750,
+      },
+    }),
+    [chartAxisRanges]
+  );
 
   const handlePausePolling = () => {
     pausePolling();
@@ -213,15 +223,16 @@ const PiCarXDashboard = () => {
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Aguardando dados do PiCarX
+            {t('piCarxDashboard.waitingAlertTitle')}
           </Typography>
           <Typography variant="body2">
-            O dispositivo PiCarX ainda não enviou dados. Verifique se:
+            {t('piCarxDashboard.waitingAlertIntro')}
           </Typography>
           <ul>
-            <li>O módulo 5G está conectado</li>
-            <li>O script de publicação está rodando</li>
-            <li>A conexão com o servidor está funcionando</li>
+            <li>{t('piCarxDashboard.waitingBullet1')}</li>
+            <li>{t('piCarxDashboard.waitingBullet2')}</li>
+            <li>{t('piCarxDashboard.waitingBullet3')}</li>
+            <li>{t('piCarxDashboard.waitingBullet4')}</li>
           </ul>
         </Alert>
         
@@ -266,11 +277,11 @@ const PiCarXDashboard = () => {
       </Breadcrumbs>
 
       {/* Header com status de conexão */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={1}>
         <Typography variant="h4" component="h1" gutterBottom>
           PiCarX Dashboard
         </Typography>
-        <Box display="flex" alignItems="center" gap={2}>
+        <Box display="flex" alignItems="center" gap={1.5} flexWrap="nowrap" sx={{ minWidth: 0 }}>
           <RealtimeIndicator isPolling={isPolling} interval={3000} />
           <ConnectionStatus
             isConnected={isConnected}
@@ -353,7 +364,7 @@ const PiCarXDashboard = () => {
                     </Typography>
                     {data ? (
                       <Chip 
-                        label={data.metadata?.module_type || '5G'} 
+                        label={resolveConnectionLabel(data.metadata, DEVICE_ID)} 
                         color="success" 
                         size="small"
                         icon={<PhoneAndroid />}
@@ -453,7 +464,7 @@ const PiCarXDashboard = () => {
                       Tipo de Módulo:
                     </Typography>
                     <Typography variant="body2">
-                      {data.metadata?.module_type || 'N/A'}
+                      {resolveModuleLabel(data.metadata, DEVICE_ID)}
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between">
@@ -461,7 +472,7 @@ const PiCarXDashboard = () => {
                       Tipo de Conexão:
                     </Typography>
                     <Typography variant="body2">
-                      5G
+                      {resolveConnectionLabel(data.metadata, DEVICE_ID)}
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between">
@@ -469,7 +480,7 @@ const PiCarXDashboard = () => {
                       Uptime:
                     </Typography>
                     <Typography variant="body2">
-                      1min
+                      {formatUptimeSeconds(data.metadata?.uptime_seconds)}
                     </Typography>
                   </Box>
                   <Box display="flex" justifyContent="space-between">
@@ -495,6 +506,11 @@ const PiCarXDashboard = () => {
               <Typography variant="h6" gutterBottom>
                 Histórico de Dados
               </Typography>
+              <ChartAxisRangeControls
+                ranges={chartAxisRanges}
+                onChange={setChartAxisRanges}
+                onReset={resetChartAxisRanges}
+              />
               <Box sx={{ height: 400 }}>
                 {chartData ? (
                   <Line data={chartData} options={chartOptions} />

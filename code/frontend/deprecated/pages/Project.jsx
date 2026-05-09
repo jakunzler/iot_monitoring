@@ -40,13 +40,13 @@ const Project = () => {
     },
     {
       icon: <Memory />,
-      title: 'Módulo RM520N para 5G',
-      description: 'Módulo 5G FN990A40 com RM520N, processador quad-core e 1GB RAM.',
+      title: 'Módulo Quectel RM520N-GL (5G)',
+      description: 'Modem 5G Quectel RM520N-GL no Raspberry Pi; tráfego prioriza 5G, com Wi-Fi como alternativa quando aplicável.',
     },
     {
       icon: <Memory />,
       title: t('project.components.esp32'),
-      description: 'Microcontrolador ESP32 com Wi-Fi integrado, processador dual-core e 520KB RAM.',
+      description: 'ESP32 com Wi-Fi e, em projetos com rádio LoRa, envio pelo enlace LoRa além ou em vez do Wi-Fi.',
     },
     {
       icon: <Sensors />,

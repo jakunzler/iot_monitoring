@@ -113,7 +113,7 @@ Na Pi: `pip3 install --user -r /home/pi/publisher/requirements.txt`, edite **`/e
 ssh pi@10.105.174.64 "sudo journalctl -u picarx-dht22-publisher -f"
 ```
 
-O ficheiro **`/home/pi/publisher/publish_picarx_dht22.log`** só aplica-se à variante legacy `publish_picarx_dht22_fixed.py` (`code/publisher/deprecated/`).
+O arquivo **`/home/pi/publisher/publish_picarx_dht22.log`** só aplica-se à variante legacy `publish_picarx_dht22_fixed.py` (`code/publisher/deprecated/`).
 
 ## 🧪 **VERIFICAÇÕES**
 

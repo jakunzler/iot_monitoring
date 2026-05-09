@@ -28,6 +28,14 @@ export const ConnectionStatus = ({
   isPolling = true,
   lastUpdate = null 
 }) => {
+  // Atualiza texto relativo ("Xs atrás") a cada segundo quando houver timestamp
+  const [, setTick] = React.useState(0);
+  React.useEffect(() => {
+    if (lastUpdate == null) return undefined;
+    const id = window.setInterval(() => setTick((x) => x + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [lastUpdate]);
+
   const getStatusColor = () => {
     if (error) return 'error';
     if (isConnected) return 'success';
@@ -47,15 +55,23 @@ export const ConnectionStatus = ({
   };
 
   const formatLastUpdate = (timestamp) => {
-    if (!timestamp) return 'Nunca';
-    const date = new Date(timestamp);
+    if (timestamp == null || timestamp === '') return 'Nunca';
+    const n = Number(timestamp);
+    if (!Number.isFinite(n)) return 'Nunca';
+    // API envia segundos Unix; Date() espera ms
+    const ms = n < 1e12 ? n * 1000 : n;
+    const date = new Date(ms);
+    if (Number.isNaN(date.getTime())) return 'Nunca';
+
     const now = new Date();
     const diffMs = now - date;
     const diffSeconds = Math.floor(diffMs / 1000);
-    
+
+    if (diffSeconds < 0) return date.toLocaleTimeString('pt-BR');
     if (diffSeconds < 60) return `${diffSeconds}s atrás`;
     if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}min atrás`;
-    return date.toLocaleTimeString('pt-BR');
+    if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)}h atrás`;
+    return date.toLocaleString('pt-BR');
   };
 
   return (
@@ -70,8 +86,17 @@ export const ConnectionStatus = ({
         />
       </Tooltip>
 
-      {lastUpdate && (
-        <Typography variant="caption" color="text.secondary">
+      {lastUpdate != null && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{
+            flexShrink: 0,
+            minWidth: '11rem',
+            whiteSpace: 'nowrap',
+            fontFamily: 'inherit',
+          }}
+        >
           Última atualização: {formatLastUpdate(lastUpdate)}
         </Typography>
       )}
@@ -120,17 +145,28 @@ export const RealtimeIndicator = ({ isPolling, interval = 5000 }) => {
 
   return (
     <Fade in={true} timeout={500}>
-      <Typography 
-        variant="caption" 
-        color="primary" 
-        sx={{ 
-          display: 'flex', 
+      <Box
+        sx={{
+          width: '7.5rem',
+          flexShrink: 0,
+          display: 'flex',
           alignItems: 'center',
-          fontFamily: 'monospace'
+          justifyContent: 'flex-start',
         }}
       >
-        Tempo real{dots}
-      </Typography>
+        <Typography
+          variant="caption"
+          color="primary"
+          sx={{
+            fontFamily: 'monospace',
+            width: '100%',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Tempo real{dots}
+        </Typography>
+      </Box>
     </Fade>
   );
 };

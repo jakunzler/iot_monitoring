@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { getApiBaseUrl } from '../config/env';
 
 /**
  * Hook customizado para gerenciar dados em tempo real
  * @param {string} deviceId - ID do dispositivo
  * @param {number} interval - Intervalo de atualização em ms (padrão: 5000)
- * @param {string} baseUrl - URL base da API (padrão: http://200.137.220.50:8080)
+ * @param {string} baseUrl - URL base da API (padrão: build-time VITE_API_URL ou dev)
  * @param {boolean} autoRefresh - Se deve fazer polling automático (padrão: true)
  */
-export const useRealtimeData = (deviceId, interval = 5000, baseUrl = 'http://200.137.220.50:8080', autoRefresh = true) => {
+export const useRealtimeData = (deviceId, interval = 5000, baseUrl = getApiBaseUrl(), autoRefresh = true) => {
   const [data, setData] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -115,13 +116,19 @@ export const useRealtimeData = (deviceId, interval = 5000, baseUrl = 'http://200
     try {
       await Promise.all([
         fetchLatestData(),
-        fetchHistory()
+        fetchHistory(),
       ]);
     } catch (err) {
       console.error('Erro ao buscar dados:', err);
     } finally {
       setLoading(false);
     }
+  }, [fetchLatestData, fetchHistory]);
+
+  /** Cada ciclo de poll atualiza último valor e histórico (gráfico acompanha o mesmo ritmo). */
+  const pollTick = useCallback(async () => {
+    await fetchLatestData();
+    await fetchHistory();
   }, [fetchLatestData, fetchHistory]);
 
   // Inicializar polling
@@ -131,10 +138,10 @@ export const useRealtimeData = (deviceId, interval = 5000, baseUrl = 'http://200
     // Buscar dados iniciais
     fetchAllData();
 
-    // Configurar polling apenas se autoRefresh estiver ativo
+    // Polling: latest + history para manter gráfico alinhado aos cartões
     if (autoRefresh) {
       intervalRef.current = setInterval(() => {
-        fetchLatestData();
+        pollTick();
       }, interval);
     }
 
@@ -147,7 +154,7 @@ export const useRealtimeData = (deviceId, interval = 5000, baseUrl = 'http://200
         abortControllerRef.current.abort();
       }
     };
-  }, [deviceId, interval, autoRefresh, fetchAllData, fetchLatestData]);
+  }, [deviceId, interval, autoRefresh, fetchAllData, pollTick]);
 
   // Função para atualizar manualmente
   const refresh = useCallback(() => {
@@ -166,10 +173,10 @@ export const useRealtimeData = (deviceId, interval = 5000, baseUrl = 'http://200
   const resumePolling = useCallback(() => {
     if (!intervalRef.current && deviceId) {
       intervalRef.current = setInterval(() => {
-        fetchLatestData();
+        pollTick();
       }, interval);
     }
-  }, [deviceId, interval, fetchLatestData]);
+  }, [deviceId, interval, pollTick]);
 
   return {
     data,

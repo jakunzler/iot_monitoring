@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import ESP32Dashboard from './pages/ESP32Dashboard';
 import PiCarXDashboard from './pages/PiCarXDashboard';
+import Documentation from './pages/Documentation';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/esp32" element={<ESP32Dashboard />} />
               <Route path="/dashboard/picarx" element={<PiCarXDashboard />} />
+              <Route path="/documentation" element={<Documentation />} />
             </Routes>
           </Box>
         </Box>

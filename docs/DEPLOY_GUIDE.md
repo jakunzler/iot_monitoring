@@ -1,6 +1,6 @@
 # Deploy completo - DHT22 IoT System (GCP / Cloud Run)
 
-Guia orientativo para deploy no Google Cloud. Os scripts efectivos foram movidos para pastas **`code/`** e **`scripts/`**.
+Guia orientativo para deploy no Google Cloud. Os scripts efetivos foram movidos para pastas **`code/`** e **`scripts/`**.
 
 ## Arquitetura
 
@@ -8,7 +8,7 @@ Guia orientativo para deploy no Google Cloud. Os scripts efectivos foram movidos
 2. **Frontend React** (`code/frontend/`) – SPA (Vite)
 3. **Publisher na Pi** (`code/publisher/`) – opcionalmente fora da GCP
 
-## Estrutura relevante no repositorio
+## Estrutura relevante no repositório
 
 ```text
 iot_monitoring/
@@ -21,9 +21,9 @@ iot_monitoring/
 │   └── cloudrun-frontend.yaml
 └── scripts/
     ├── deploy-complete.sh
-    ├── deploy-backend.sh      # faz cd implicito para code/backend
+    ├── deploy-backend.sh      # faz cd implícito para code/backend
     ├── deploy-frontend.sh
-    ├── deploy-cloudrun.sh     # faz cd implicito para code/
+    ├── deploy-cloudrun.sh     # faz cd implícito para code/
     └── test-local-builds.sh
 ```
 
@@ -38,7 +38,7 @@ export PROJECT_ID="seu-project-id"
 ./deploy-complete.sh
 ```
 
-O script assume o repositorio ao nível pai (`scripts/` -> `../code/`).
+O script assume o repositório no nível pai (`scripts/` -> `../code/`).
 
 ## Deploy individual
 
@@ -48,10 +48,10 @@ cd scripts
 ./deploy-frontend.sh    # PROJECT_ID / BACKEND_URL conforme cabeçalho do script
 ```
 
-## Variaveis / exemplos
+## Variáveis / exemplos
 
 - `code/cloudrun-config.env`
-- Documentacao complementar: `docs/CLOUDRUN_DEPLOY.md`
+- Documentação complementar: `docs/CLOUDRUN_DEPLOY.md`
 
 ## Testes locais de imagens
 

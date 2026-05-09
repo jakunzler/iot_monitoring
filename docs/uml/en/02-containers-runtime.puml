@@ -1,0 +1,38 @@
+@startuml 02-containers-runtime
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+title Runtime containers — logical deployment boundaries
+
+package "Edge (field / lab)" {
+  [DHT22 publisher\n(python: publish_picarx_dht22.py)] as Pub
+  [DHT22 sensor\n+ GPIO] as Sensor
+}
+
+package "API server (host, VM or container)" {
+  [Flask app\n(code/backend)] as Api
+  database "SQLite\n(dht22_data.db)" as Db
+}
+
+package "Web client" {
+  [React SPA + Vite\n(code/frontend)] as Spa
+}
+
+Sensor -down-> Pub : periodic readings
+Pub -down-> Api : **POST** /api/ingest\n(JSON)
+Spa -right-> Api : **GET** /api/latest, /api/history,\n/api/stats, …
+Api -down-> Db : read / write
+
+note bottom of Pub
+  **PUBLISH_URL** sets the target
+  (local on the Pi or remote server).
+  PiCarX: **5G Quectel RM520N-GL** as primary;
+  **Wi-Fi** fallback when configured.
+end note
+
+note bottom of Spa
+  The SPA never hits SQLite directly:
+  always via the HTTP API (CORS enabled).
+end note
+
+@enduml

@@ -1,0 +1,17 @@
+# Build container with API URL baked in at image build time (Vite).
+# Run from repo root .../code via scripts/deploy-frontend.sh
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_URL=${_VITE_API_URL}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+      - '.'
+images:
+  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+# GCS_ONLY: logs no bucket do Cloud Build (evita exigir roles/logging.logWriter na conta do worker).
+# Se preferires só Cloud Logging, troca para CLOUD_LOGGING_ONLY e atribui Logs Writer à conta do build.
+options:
+  logging: GCS_ONLY

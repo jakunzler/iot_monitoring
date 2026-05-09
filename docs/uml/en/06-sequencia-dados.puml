@@ -1,0 +1,35 @@
+@startuml 06-sequencia-dados
+skinparam sequenceMessageAlign center
+skinparam shadowing false
+
+title Sequence — edge ingest and dashboard consumption
+
+actor "Publisher\n(Pi / ESP)" as Pub
+participant "Flask API\n/api/ingest" as Api
+database "SQLite" as Db
+participant "React SPA\n(useRealtimeData)" as Spa
+actor "User" as User
+
+== Periodic ingest ==
+Pub -> Api : POST /api/ingest\n(device_id, sensor, data, metadata)
+activate Api
+Api -> Db : INSERT sensor_data
+Db --> Api : ok
+Api --> Pub : 200 JSON
+deactivate Api
+
+== Dashboard query ==
+User -> Spa : opens device page
+activate Spa
+loop polling (e.g. 5s)
+  Spa -> Api : GET /api/latest/{device_id}
+  activate Api
+  Api -> Db : SELECT latest row
+  Db --> Api : row
+  Api --> Spa : JSON
+  deactivate Api
+end
+Spa --> User : charts / values
+deactivate Spa
+
+@enduml

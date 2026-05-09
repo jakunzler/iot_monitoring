@@ -298,6 +298,10 @@ Para problemas específicos do módulo RM520N-GL:
 - Verifique os logs do sistema
 - Execute os scripts de diagnóstico incluídos
 
+## Ver também
+
+- Roteiro **ModemManager**, `wwan0`, serviço **`wwan-quectel`**, **métricas** (5G prioritário), **tcpdump**, persistência após reboot: [`../picarx/MODEMMANAGER_RM520N_ROTEIRO.md`](../picarx/MODEMMANAGER_RM520N_ROTEIRO.md)
+
 ## Changelog
 
 ### v1.0.0

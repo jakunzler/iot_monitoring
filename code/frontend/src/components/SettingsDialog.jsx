@@ -18,6 +18,7 @@ import {
   Alert,
 } from '@mui/material';
 import { Settings, Save, Refresh } from '@mui/icons-material';
+import { getApiBaseUrl } from '../config/env';
 
 /**
  * Componente de configurações para ajustar polling e outras opções
@@ -26,7 +27,7 @@ export const SettingsDialog = ({
   open, 
   onClose, 
   currentInterval = 5000,
-  currentBaseUrl = 'http://200.137.220.50:8080',
+  currentBaseUrl = getApiBaseUrl(),
   onSaveSettings 
 }) => {
   const [interval, setInterval] = useState(currentInterval);
@@ -61,7 +62,7 @@ export const SettingsDialog = ({
 
   const handleReset = () => {
     setInterval(5000);
-    setBaseUrl('http://200.137.220.50:8080');
+    setBaseUrl(getApiBaseUrl());
     setAutoRefresh(true);
     setShowAnimations(true);
     setError('');
@@ -179,7 +180,7 @@ export const useSettings = () => {
     const saved = localStorage.getItem('dashboard-settings');
     return saved ? JSON.parse(saved) : {
       interval: 5000,
-      baseUrl: 'http://200.137.220.50:8080',
+      baseUrl: getApiBaseUrl(),
       autoRefresh: true,
       showAnimations: true,
     };

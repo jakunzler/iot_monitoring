@@ -16,6 +16,7 @@ import {
   Language,
   Dashboard,
   Home,
+  AccountTree,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
@@ -78,6 +79,17 @@ const Navigation = () => {
             }}
           >
             {t('navigation.dashboard')}
+          </Button>
+
+          <Button
+            color="inherit"
+            startIcon={<AccountTree />}
+            onClick={() => navigate('/documentation')}
+            sx={{
+              backgroundColor: location.pathname === '/documentation' ? 'rgba(255,255,255,0.1)' : 'transparent',
+            }}
+          >
+            {t('navigation.documentation')}
           </Button>
 
           <IconButton

@@ -1,0 +1,41 @@
+@startuml 05-implantacao
+' Diagrama de implantação (nós e artefatos principais)
+skinparam shadowing false
+
+title Implantação — exemplos (local Docker, borda, nuvem opcional)
+
+node "Máquina de desenvolvimento" as Dev {
+  artifact "docker compose\n(code/docker-compose.yml)" as DC
+  node "container frontend\n:3000→80" as Cfe
+  node "container backend\n:8080" as Cbe
+  artifact "volume backend → ./backend" as Vol
+}
+
+node "Raspberry Pi / PiCarX" as Pi {
+  artifact "venv + publish_picarx_dht22.py" as Agen
+  artifact "unit systemd\n(local ou remoto)" as Sysd
+}
+
+node "Nuvem (opcional)\nGCP Cloud Run / App Engine" as Cloud {
+  artifact "imagens Docker / build estático" as Img
+}
+
+cloud "Rede (LAN / Internet)" as Net
+
+Cfe -down- Cbe : rede bridge iot-network
+Vol .. Cbe
+DC .. Cfe
+DC .. Cbe
+
+Agen .. Net
+Cbe .. Net : **api/ingest** e **GET** dados
+Sysd .. Agen : inicia / reinicia agente
+Img .. Net : mesmo contrato HTTP se deploy remoto
+
+note bottom of Cloud
+  Frontend e backend podem ser publicados
+  separadamente; o publicador na Pi usa **PUBLISH_URL**
+  apontando para o endpoint público ou VPN.
+end note
+
+@enduml

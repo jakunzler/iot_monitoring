@@ -1,0 +1,36 @@
+@startuml 03-componentes-backend
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+title Components — Flask backend (`code/backend/server.py` & production)
+
+component [Flask App\n(CORS)] as Flask
+
+interface "HTTP / JSON" as HTTP
+
+component [Ingest routes\nPOST /api/ingest] as Ingest
+component [Query routes\nGET /api/latest/{id}\nGET /api/history/{id}\nGET /api/stats/{id}] as Query
+component [Maintenance\nPOST /api/clear] as Clear
+component [Optional legacy UI\nGET / (HTML dashboard)] as LegacyUi
+component [Persistence layer\nsqlite3] as Repo
+database "SQLite file" as File
+
+HTTP - Flask
+Flask -down- Ingest
+Flask -down- Query
+Flask -down- Clear
+Flask -down- LegacyUi
+Ingest -down-> Repo : INSERT
+Query -down-> Repo : SELECT
+Clear -down-> Repo : DELETE / cleanup
+LegacyUi ..> Repo : optional\n(separate routes)
+
+Repo -right- File
+
+note right of Ingest
+  Supports nested payload
+  (sensor + data) and legacy
+  flat format.
+end note
+
+@enduml

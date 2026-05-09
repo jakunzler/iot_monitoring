@@ -37,6 +37,9 @@ import { LoadingSpinner, CardLoading, ChartLoading } from '../components/Loading
 import { ConnectionStatus, RealtimeIndicator } from '../components/ConnectionStatus';
 import { ClearDatabaseButton } from '../components/ClearDatabaseButton';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { getApiBaseUrl } from '../config/env';
+import { usePersistedChartAxisRanges } from '../hooks/usePersistedChartAxisRanges';
+import { ChartAxisRangeControls } from '../components/ChartAxisRangeControls';
 
 ChartJS.register(
   CategoryScale,
@@ -52,7 +55,7 @@ const ESP32Dashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const DEVICE_ID = 'ESP32-DHT22-Publisher';
-  const API_BASE_URL = 'http://200.137.220.50:8080';
+  const API_BASE_URL = getApiBaseUrl();
   
   const {
     data,
@@ -69,12 +72,14 @@ const ESP32Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [isPolling, setIsPolling] = useState(true);
 
-  // Buscar estatísticas quando os dados carregam
+  const { ranges: chartAxisRanges, setRanges: setChartAxisRanges, reset: resetChartAxisRanges } =
+    usePersistedChartAxisRanges(`iot-chart-axes-${DEVICE_ID}`);
+
+  // Estatísticas: atualizar a cada nova leitura (alinhado ao poll do histórico)
   useEffect(() => {
-    if (data && !stats) {
-      fetchStats().then(setStats).catch(console.error);
-    }
-  }, [data, stats, fetchStats]);
+    if (!data) return;
+    fetchStats().then(setStats).catch(console.error);
+  }, [data, fetchStats]);
 
   // Função para corrigir timestamp do ESP32
   const fixESP32Timestamp = (timestamp) => {
@@ -133,68 +138,71 @@ const ESP32Dashboard = () => {
     };
   }, [history]);
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Histórico de Temperatura e Umidade',
-      },
-    },
-    scales: {
-      y: {
-        type: 'linear',
-        display: true,
-        position: 'left',
-        min: 20,
-        max: 40,
+  const chartOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
         title: {
           display: true,
-          text: 'Temperatura (°C)',
-          color: 'rgb(75, 192, 192)',
-        },
-        ticks: {
-          color: 'rgb(75, 192, 192)',
-          stepSize: 2,
-        },
-        grid: {
-          color: 'rgba(75, 192, 192, 0.1)',
+          text: 'Histórico de Temperatura e Umidade',
         },
       },
-      y1: {
-        type: 'linear',
-        display: true,
-        position: 'right',
-        min: 0,
-        max: 100,
-        title: {
+      scales: {
+        y: {
+          type: 'linear',
           display: true,
-          text: 'Umidade (%)',
-          color: 'rgb(54, 162, 235)',
+          position: 'left',
+          min: chartAxisRanges.tempMin,
+          max: chartAxisRanges.tempMax,
+          title: {
+            display: true,
+            text: 'Temperatura (°C)',
+            color: 'rgb(75, 192, 192)',
+          },
+          ticks: {
+            color: 'rgb(75, 192, 192)',
+            maxTicksLimit: 8,
+          },
+          grid: {
+            color: 'rgba(75, 192, 192, 0.1)',
+          },
         },
-        ticks: {
-          color: 'rgb(54, 162, 235)',
-          stepSize: 10,
-        },
-        grid: {
-          drawOnChartArea: false,
-        },
-      },
-      x: {
-        title: {
+        y1: {
+          type: 'linear',
           display: true,
-          text: 'Tempo',
+          position: 'right',
+          min: chartAxisRanges.humMin,
+          max: chartAxisRanges.humMax,
+          title: {
+            display: true,
+            text: 'Umidade (%)',
+            color: 'rgb(54, 162, 235)',
+          },
+          ticks: {
+            color: 'rgb(54, 162, 235)',
+            maxTicksLimit: 8,
+          },
+          grid: {
+            drawOnChartArea: false,
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Tempo',
+          },
         },
       },
-    },
-    animation: {
-      duration: 750,
-    },
-  };
+      animation: {
+        duration: 750,
+      },
+    }),
+    [chartAxisRanges]
+  );
 
   const handlePausePolling = () => {
     pausePolling();
@@ -393,6 +401,11 @@ const ESP32Dashboard = () => {
               <Typography variant="h6" gutterBottom>
                 Histórico de Dados
               </Typography>
+              <ChartAxisRangeControls
+                ranges={chartAxisRanges}
+                onChange={setChartAxisRanges}
+                onReset={resetChartAxisRanges}
+              />
               <Box sx={{ height: 400 }}>
                 {chartData ? (
                   <Line data={chartData} options={chartOptions} />

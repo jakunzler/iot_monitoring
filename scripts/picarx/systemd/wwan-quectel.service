@@ -1,0 +1,15 @@
+[Unit]
+Description=Quectel RM520N: ligar dados via ModemManager e aplicar IPv4 em wwan0
+After=ModemManager.service
+Wants=ModemManager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=-/etc/default/wwan-quectel
+ExecStart=/usr/local/sbin/wwan-connect.sh
+# Opcional: ao desligar o serviço, terminar sessão de dados
+# ExecStop=/usr/bin/mmcli -m 0 --simple-disconnect
+
+[Install]
+WantedBy=multi-user.target

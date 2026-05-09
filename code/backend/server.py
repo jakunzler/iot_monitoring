@@ -167,12 +167,12 @@ def get_latest(device_id):
                     'wifi_rssi': row[7],
                     'wifi_ip': row[8],
                     'uptime_seconds': row[9],
-                    'module_type': row[12] if len(row) > 12 else 'ESP32',
-                    'connection_type': row[13] if len(row) > 13 else 'Wi-Fi',
-                    'gpio_pin': row[14] if len(row) > 14 else None
+                    'module_type': row[11] if len(row) > 11 and row[11] is not None else 'ESP32',
+                    'connection_type': row[12] if len(row) > 12 and row[12] is not None else 'Wi-Fi',
+                    'gpio_pin': row[13] if len(row) > 13 else None
                 },
                 'reading_number': row[10],
-                'created_at': row[11]
+                'created_at': row[14] if len(row) > 14 else None
             })
         else:
             return jsonify({'error': 'Nenhum dado encontrado'}), 404
@@ -214,12 +214,12 @@ def get_history(device_id):
                     'wifi_rssi': row[7],
                     'wifi_ip': row[8],
                     'uptime_seconds': row[9],
-                    'module_type': row[12] if len(row) > 12 else 'ESP32',
-                    'connection_type': row[13] if len(row) > 13 else 'Wi-Fi',
-                    'gpio_pin': row[14] if len(row) > 14 else None
+                    'module_type': row[11] if len(row) > 11 and row[11] is not None else 'ESP32',
+                    'connection_type': row[12] if len(row) > 12 and row[12] is not None else 'Wi-Fi',
+                    'gpio_pin': row[13] if len(row) > 13 else None
                 },
                 'reading_number': row[10],
-                'created_at': row[11]
+                'created_at': row[14] if len(row) > 14 else None
             })
         
         return jsonify(data)

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Publicador DHT22 no PiCarX. Cenário típico: modem 5G Quectel RM520N-GL (prioridade
+de rota); Wi-Fi como alternativa quando a rede estiver configurada no sistema."""
 import os, time, socket, requests, board, adafruit_dht
 
 # === Configurações via variáveis de ambiente (ou valores padrão) ===
@@ -6,6 +8,11 @@ PUBLISH_URL = os.getenv("PUBLISH_URL", "http://127.0.0.1:8080/api/ingest")
 DEVICE_ID = os.getenv("DEVICE_ID", "PiCarX-RM520N-DHT22")
 READ_INTERVAL = float(os.getenv("READ_INTERVAL_S", "2.5"))  # segundos
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT_S", "10"))
+
+# Modem / enlace (coerente com o armazenamento na API: module_type + connection_type)
+MODULE_TYPE = os.getenv("MODULE_TYPE", "Quectel RM520N-GL")
+# Tráfego principal 5G; use CONNECTION_TYPE=Wi-Fi quando estiver em fallback só Wi-Fi
+CONNECTION_TYPE = os.getenv("CONNECTION_TYPE", "5G")
 
 # === Pino do sensor ===
 # Permitir troca do pino via env var (BCM). Padrão: 14 (pino físico 8)
@@ -60,7 +67,9 @@ def publish_data(temp, hum, reading_n, uptime_s):
         "metadata": {
             "wifi_rssi": None,
             "wifi_ip": get_ip_address(),
-            "uptime_seconds": uptime_s
+            "uptime_seconds": uptime_s,
+            "module_type": MODULE_TYPE,
+            "connection_type": CONNECTION_TYPE,
         }
     }
     try:
@@ -78,6 +87,8 @@ def main():
     print(f"Endpoint: {PUBLISH_URL}")
     print(f"DeviceID: {DEVICE_ID}")
     print(f"Sensor: DHT22 no BCM {_bcm_str} (ajuste com DHT_GPIO_BCM)")
+    print(f"MODULE_TYPE: {MODULE_TYPE}")
+    print(f"CONNECTION_TYPE: {CONNECTION_TYPE}  (use Wi-Fi se o POST sair só pela rede local Wi-Fi)")
     print("-------------------------------------------")
 
     reading_n = 0

@@ -1,19 +1,17 @@
-# Dockerfile para Frontend React
-FROM node:18-alpine as builder
+# Frontend Vite: precisa de devDependencies (vite) no stage de build.
+FROM node:18-alpine AS builder
 
-# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar package.json e package-lock.json
 COPY package*.json ./
+RUN npm ci
 
-# Instalar dependências
-RUN npm ci --only=production
-
-# Copiar código fonte
 COPY . .
 
-# Build da aplicação
+# Incorporada no bundle em `npm run build` (ver src/config/env.js).
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 RUN npm run build
 
 # Estágio de produção com nginx

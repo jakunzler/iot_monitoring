@@ -220,12 +220,12 @@ def get_latest(device_id):
                     'wifi_rssi': row[7] if row[7] is not None else "N/A",
                     'wifi_ip': row[8] if row[8] is not None else "N/A",
                     'uptime_seconds': row[9] if row[9] is not None else 0,
-                    'module_type': row[12] if len(row) > 12 else 'ESP32',
-                    'connection_type': row[13] if len(row) > 13 else 'Wi-Fi',
-                    'gpio_pin': row[14] if len(row) > 14 else None
+                    'module_type': row[11] if len(row) > 11 and row[11] is not None else 'ESP32',
+                    'connection_type': row[12] if len(row) > 12 and row[12] is not None else 'Wi-Fi',
+                    'gpio_pin': row[13] if len(row) > 13 else None
                 },
                 'reading_number': row[10],
-                'created_at': row[15] if len(row) > 15 else datetime.now().isoformat()
+                'created_at': row[14] if len(row) > 14 else datetime.now().isoformat()
             })
         else:
             return jsonify({'error': 'Nenhum dado encontrado'}), 404
@@ -268,12 +268,12 @@ def get_history(device_id):
                     'wifi_rssi': row[7] if row[7] is not None else "N/A",
                     'wifi_ip': row[8] if row[8] is not None else "N/A",
                     'uptime_seconds': row[9] if row[9] is not None else 0,
-                    'module_type': row[12] if len(row) > 12 else 'ESP32',
-                    'connection_type': row[13] if len(row) > 13 else 'Wi-Fi',
-                    'gpio_pin': row[14] if len(row) > 14 else None
+                    'module_type': row[11] if len(row) > 11 and row[11] is not None else 'ESP32',
+                    'connection_type': row[12] if len(row) > 12 and row[12] is not None else 'Wi-Fi',
+                    'gpio_pin': row[13] if len(row) > 13 else None
                 },
                 'reading_number': row[10],
-                'created_at': row[15] if len(row) > 15 else datetime.now().isoformat()
+                'created_at': row[14] if len(row) > 14 else datetime.now().isoformat()
             })
         
         return jsonify(data)

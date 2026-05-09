@@ -7,7 +7,7 @@ echo "=== CORRIGINDO SERVIDOR DHT22 ==="
 echo "Parando serviço..."
 sudo systemctl stop dht22-server
 
-echo "Copiando server_production.py a partir do repositorio..."
+echo "Copiando server_production.py a partir do repositório..."
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC_BACKEND="${DHT22_BACKEND_ROOT:-$REPO_ROOT/code/backend}"
 sudo cp "$SRC_BACKEND/server_production.py" /opt/dht22-server/server.py
