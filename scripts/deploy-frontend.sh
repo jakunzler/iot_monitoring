@@ -5,8 +5,8 @@
 
 # --- Problemas comuns no Cloud Build / IAM ---
 # Ver: docs/deployment/GCP_CLOUD_BUILD_FRONTEND.md
-# Resumo: storage (source + gcr.io), opcional logging.logWriter, e builds log:
-#   gcloud builds log BUILD_ID
+# Push gcr.io → Artifact Registry: usar roles/artifactregistry.createOnPushWriter
+# (or create gcr.io repo in us); see docs/deployment/GCP_CLOUD_BUILD_FRONTEND.md sections 3 and 3a.
 
 set -euo pipefail
 
@@ -43,11 +43,16 @@ FRONTEND_CPU="${FRONTEND_CPU:-1}"
 MIN_INSTANCES="${MIN_INSTANCES:-1}"
 MAX_INSTANCES="${MAX_INSTANCES:-10}"
 
+BACKEND_PROXY_URL="${BACKEND_PROXY_URL:-http://200.137.220.50:8080}"
+
 echo "⚛️  Deploy do frontend (Vite) para Cloud Run"
 echo "    Projeto:     $PROJECT_ID"
 echo "    Região:      $REGION"
 echo "    Serviço:     $SERVICE_NAME"
 echo "    VITE_API_URL (build): $EXPORT_VITE"
+if [[ "$EXPORT_VITE" == "__SAME_ORIGIN__" ]]; then
+  echo "    BACKEND_PROXY_URL (nginx /api → VM): $BACKEND_PROXY_URL"
+fi
 echo ""
 
 cd "$CODE_DIR"
@@ -70,7 +75,8 @@ gcloud run deploy "$SERVICE_NAME" \
   --memory "$FRONTEND_MEMORY" \
   --cpu "$FRONTEND_CPU" \
   --min-instances "$MIN_INSTANCES" \
-  --max-instances "$MAX_INSTANCES"
+  --max-instances "$MAX_INSTANCES" \
+  --set-env-vars "BACKEND_PROXY_URL=${BACKEND_PROXY_URL}"
 
 FRONTEND_URL="$(gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format='value(status.url)')"
 echo ""

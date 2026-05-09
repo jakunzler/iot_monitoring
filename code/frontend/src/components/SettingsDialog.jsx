@@ -37,12 +37,15 @@ export const SettingsDialog = ({
   const [error, setError] = useState('');
 
   const handleSave = () => {
-    // Validar URL
-    try {
-      new URL(baseUrl);
-    } catch {
-      setError('URL inválida');
-      return;
+    const trimmed = String(baseUrl).trim();
+    // Vazio = mesmo origem (Cloud Run com proxy /api)
+    if (trimmed !== '') {
+      try {
+        new URL(trimmed);
+      } catch {
+        setError('URL inválida');
+        return;
+      }
     }
 
     // Validar intervalo
@@ -53,7 +56,7 @@ export const SettingsDialog = ({
 
     onSaveSettings({
       interval,
-      baseUrl,
+      baseUrl: String(baseUrl).trim(),
       autoRefresh,
       showAnimations,
     });
@@ -95,7 +98,11 @@ export const SettingsDialog = ({
               label="URL Base da API"
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
-              helperText="URL do servidor backend"
+              helperText={
+                baseUrl === ''
+                  ? 'Vazio = mesma origem (/api via proxy no Cloud Run).'
+                  : 'URL do servidor backend (ou vazio para proxy).'
+              }
               margin="normal"
             />
           </Box>

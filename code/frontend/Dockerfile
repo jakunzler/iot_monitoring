@@ -14,17 +14,17 @@ ENV VITE_API_URL=${VITE_API_URL}
 
 RUN npm run build
 
-# Estágio de produção com nginx
+# Estágio de produção com nginx (proxy /api → BACKEND_PROXY_URL em runtime)
 FROM nginx:alpine
 
-# Copiar arquivos buildados
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copiar configuração customizada do nginx
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+RUN chmod +x /docker-entrypoint.sh
 
-# Expor porta
+ENV BACKEND_PROXY_URL=http://200.137.220.50:8080
+
 EXPOSE 80
 
-# Comando para iniciar nginx
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
