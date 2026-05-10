@@ -99,13 +99,18 @@ export const ClearDatabaseButton = ({
         startIcon={<DeleteForever />}
         onClick={handleClickOpen}
         disabled={loading}
-        sx={{ 
+        sx={{
           borderColor: 'error.main',
+          flexShrink: 0,
+          maxWidth: '100%',
+          whiteSpace: { xs: 'normal', sm: 'nowrap' },
+          textAlign: 'center',
+          lineHeight: 1.25,
           '&:hover': {
             borderColor: 'error.dark',
             backgroundColor: 'error.light',
             color: 'error.contrastText'
-          }
+          },
         }}
       >
         Limpar Banco de Dados

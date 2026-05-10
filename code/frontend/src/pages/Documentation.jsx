@@ -37,16 +37,25 @@ const Documentation = () => {
   const umlLocale = resolveUmlLocale(language);
 
   return (
-    <Box sx={{ py: 4, bgcolor: 'background.default', minHeight: '100%' }}>
-      <Container maxWidth="lg">
-        <Stack spacing={1} sx={{ mb: 4 }}>
-          <Typography variant="h4" component="h1" fontWeight={700}>
+    <Box sx={{ py: { xs: 2, sm: 4 }, bgcolor: 'background.default', minHeight: '100%', width: '100%' }}>
+      <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+        <Stack spacing={1} sx={{ mb: { xs: 3, md: 4 } }}>
+          <Typography
+            variant="h4"
+            component="h1"
+            fontWeight={700}
+            sx={{ fontSize: { xs: '1.35rem', sm: '1.75rem', md: '2.125rem' }, lineHeight: 1.3 }}
+          >
             {t('documentation.pageTitle')}
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
+          <Typography variant="subtitle1" color="text.secondary" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
             {t('documentation.pageSubtitle')}
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 900 }}>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{ maxWidth: 900, fontSize: { xs: '0.9rem', sm: '1rem' }, lineHeight: 1.5 }}
+          >
             {t('documentation.intro')}
           </Typography>
         </Stack>

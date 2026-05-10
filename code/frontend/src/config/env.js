@@ -21,3 +21,28 @@ export function getApiBaseUrl() {
   }
   return DEFAULT_LOCAL_API;
 }
+
+/** URL pública para partilha / QR (ex.: Cloud Run). */
+const DEFAULT_PUBLIC_SITE = 'https://dht22-frontend-a4lmpozwka-tl.a.run.app';
+
+/**
+ * Base URL do site (sem barra final).
+ * - Com `VITE_PUBLIC_APP_URL` no build: usa esse valor (fixa o QR p.ex. ao servir de outro host).
+ * - No browser: usa `window.location.origin` (mantém o QR alinhado ao domínio actual).
+ * - Caso contrário: URL de produção por defeito (testes / pré-render).
+ */
+export function getPublicSiteUrl() {
+  const built = import.meta.env.VITE_PUBLIC_APP_URL;
+  if (built !== undefined && built !== null && String(built).trim() !== '') {
+    return String(built).trim().replace(/\/+$/, '');
+  }
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin.replace(/\/+$/, '');
+  }
+  return DEFAULT_PUBLIC_SITE;
+}
+
+/** URL completa para codificar no QR (início da app). */
+export function getPublicSiteUrlForQr() {
+  return `${getPublicSiteUrl()}/`;
+}

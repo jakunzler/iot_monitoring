@@ -75,7 +75,7 @@ export const ConnectionStatus = ({
   };
 
   return (
-    <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+    <Box display="flex" alignItems="center" gap={1} flexWrap="wrap" sx={{ minWidth: 0, maxWidth: '100%' }}>
       <Tooltip title={error || getStatusText()}>
         <Chip
           icon={getStatusIcon()}
@@ -92,9 +92,11 @@ export const ConnectionStatus = ({
           color="text.secondary"
           sx={{
             flexShrink: 0,
-            minWidth: '11rem',
-            whiteSpace: 'nowrap',
+            minWidth: { xs: 0, sm: '11rem' },
+            whiteSpace: { xs: 'normal', sm: 'nowrap' },
+            maxWidth: { xs: '100%', sm: 'none' },
             fontFamily: 'inherit',
+            lineHeight: 1.35,
           }}
         >
           Última atualização: {formatLastUpdate(lastUpdate)}
@@ -147,7 +149,8 @@ export const RealtimeIndicator = ({ isPolling, interval = 5000 }) => {
     <Fade in={true} timeout={500}>
       <Box
         sx={{
-          width: '7.5rem',
+          width: { xs: 'auto', sm: '7.5rem' },
+          maxWidth: '100%',
           flexShrink: 0,
           display: 'flex',
           alignItems: 'center',

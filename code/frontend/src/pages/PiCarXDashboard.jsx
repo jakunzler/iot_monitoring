@@ -10,6 +10,8 @@ import {
   Chip,
   Breadcrumbs,
   Link,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Thermostat,
@@ -55,6 +57,8 @@ ChartJS.register(
 
 const PiCarXDashboard = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isChartCompact = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const DEVICE_ID = 'PiCarX-RM520N-DHT22';
   const API_BASE_URL = getApiBaseUrl();
@@ -122,11 +126,16 @@ const PiCarXDashboard = () => {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'top',
+          position: isChartCompact ? 'bottom' : 'top',
+          labels: {
+            boxWidth: isChartCompact ? 12 : 40,
+            font: { size: isChartCompact ? 10 : 12 },
+          },
         },
         title: {
           display: true,
           text: 'Histórico de Temperatura e Umidade - PiCarX',
+          font: { size: isChartCompact ? 13 : 14 },
         },
       },
       scales: {
@@ -178,8 +187,16 @@ const PiCarXDashboard = () => {
       animation: {
         duration: 750,
       },
+      layout: {
+        padding: {
+          left: isChartCompact ? 4 : 8,
+          right: isChartCompact ? 12 : 16,
+          top: isChartCompact ? 8 : 12,
+          bottom: isChartCompact ? 8 : 12,
+        },
+      },
     }),
-    [chartAxisRanges]
+    [chartAxisRanges, isChartCompact]
   );
 
   const handlePausePolling = () => {
@@ -208,7 +225,7 @@ const PiCarXDashboard = () => {
 
   if (loading && !data) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: 4, px: { xs: 2, sm: 3 } }}>
         <LoadingSpinner 
           message="Carregando dados do PiCarX..." 
           fullHeight={true}
@@ -220,7 +237,7 @@ const PiCarXDashboard = () => {
   // Se não há dados e não está carregando, mostrar mensagem informativa
   if (!loading && !data && !error) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: 4, px: { xs: 2, sm: 3 } }}>
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
             {t('piCarxDashboard.waitingAlertTitle')}
@@ -249,9 +266,20 @@ const PiCarXDashboard = () => {
 
   return (
     <ErrorBoundary>
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: 4, px: { xs: 2, sm: 3 }, overflowX: 'hidden' }}>
       {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
+      <Breadcrumbs
+        separator="›"
+        sx={{
+          mb: 3,
+          flexWrap: 'wrap',
+          '& .MuiBreadcrumbs-li': { maxWidth: '100%' },
+          '& a, & p': {
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            wordBreak: 'break-word',
+          },
+        }}
+      >
         <Link
           component="button"
           variant="body1"
@@ -277,11 +305,31 @@ const PiCarXDashboard = () => {
       </Breadcrumbs>
 
       {/* Header com status de conexão */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={1}>
-        <Typography variant="h4" component="h1" gutterBottom>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        mb={3}
+        flexWrap="wrap"
+        gap={{ xs: 2, sm: 1 }}
+        flexDirection={{ xs: 'column', lg: 'row' }}
+        sx={{ width: '100%', minWidth: 0 }}
+      >
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          sx={{ mb: 0, fontSize: { xs: '1.35rem', sm: '1.75rem', md: '2.125rem' } }}
+        >
           PiCarX Dashboard
         </Typography>
-        <Box display="flex" alignItems="center" gap={1.5} flexWrap="nowrap" sx={{ minWidth: 0 }}>
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={1.5}
+          flexWrap="wrap"
+          sx={{ minWidth: 0, width: { xs: '100%', lg: 'auto' }, justifyContent: { xs: 'flex-start', lg: 'flex-end' } }}
+        >
           <RealtimeIndicator isPolling={isPolling} interval={3000} />
           <ConnectionStatus
             isConnected={isConnected}
@@ -302,18 +350,18 @@ const PiCarXDashboard = () => {
 
       {/* Alertas de erro */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
           {error}
         </Alert>
       )}
 
       {/* Dados atuais */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} size={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box>
+              <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+                <Box sx={{ minWidth: 0 }}>
                   <Typography color="text.secondary" gutterBottom>
                     Temperatura
                   </Typography>
@@ -331,11 +379,11 @@ const PiCarXDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} size={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box>
+              <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+                <Box sx={{ minWidth: 0 }}>
                   <Typography color="text.secondary" gutterBottom>
                     Umidade
                   </Typography>
@@ -353,12 +401,11 @@ const PiCarXDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} size={3}>
-          
+        <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                  <Box>
+                <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography color="text.secondary" gutterBottom>
                       Conexão
                     </Typography>
@@ -380,12 +427,11 @@ const PiCarXDashboard = () => {
           
         </Grid>
 
-        <Grid item xs={12} sm={6} size={3}>
-          
+        <Grid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                  <Box>
+                <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography color="text.secondary" gutterBottom>
                       Última Atualização
                     </Typography>
@@ -415,15 +461,21 @@ const PiCarXDashboard = () => {
                   Informações do Dispositivo
                 </Typography>
                 <Box display="flex" flexDirection="column" gap={1}>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body2" color="text.secondary">
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    gap={2}
+                    flexWrap="wrap"
+                    sx={{ rowGap: 0.5 }}
+                  >
+                    <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
                       Device ID:
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography variant="body2" sx={{ textAlign: { xs: 'left', sm: 'right' }, wordBreak: 'break-all' }}>
                       {data.device_id}
                     </Typography>
                   </Box>
-                  <Box display="flex" justifyContent="space-between">
+                  <Box display="flex" justifyContent="space-between" gap={2} flexWrap="wrap">
                     <Typography variant="body2" color="text.secondary">
                       Tipo de Sensor:
                     </Typography>
@@ -431,7 +483,7 @@ const PiCarXDashboard = () => {
                       {data.sensor_type?.toUpperCase()}
                     </Typography>
                   </Box>
-                  <Box display="flex" justifyContent="space-between">
+                  <Box display="flex" justifyContent="space-between" gap={2} flexWrap="wrap">
                     <Typography variant="body2" color="text.secondary">
                       GPIO Pin:
                     </Typography>
@@ -439,11 +491,17 @@ const PiCarXDashboard = () => {
                       board.D14
                     </Typography>
                   </Box>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body2" color="text.secondary">
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    gap={2}
+                    flexWrap="wrap"
+                    sx={{ rowGap: 0.5 }}
+                  >
+                    <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
                       IP Address:
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
                       {data.metadata?.wifi_ip || 'N/A'}
                     </Typography>
                   </Box>
@@ -511,7 +569,7 @@ const PiCarXDashboard = () => {
                 onChange={setChartAxisRanges}
                 onReset={resetChartAxisRanges}
               />
-              <Box sx={{ height: 400 }}>
+              <Box sx={{ height: { xs: 260, sm: 340, md: 400 }, width: '100%', minWidth: 0 }}>
                 {chartData ? (
                   <Line data={chartData} options={chartOptions} />
                 ) : (
@@ -533,7 +591,7 @@ const PiCarXDashboard = () => {
                   Estatísticas
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={6} size={3}>
+                  <Grid item xs={12} sm={6} md={3}>
                     <Typography variant="body2" color="text.secondary">
                       Total de Leituras
                     </Typography>
@@ -541,7 +599,7 @@ const PiCarXDashboard = () => {
                       {stats.total_readings}
                     </Typography>
                   </Grid>
-                  <Grid item xs={6} size={3}>
+                  <Grid item xs={12} sm={6} md={3}>
                     <Typography variant="body2" color="text.secondary">
                       Temp. Média
                     </Typography>
@@ -549,7 +607,7 @@ const PiCarXDashboard = () => {
                       {stats.avg_temperature?.toFixed(1)}°C
                     </Typography>
                   </Grid>
-                  <Grid item xs={6} size={3}>
+                  <Grid item xs={12} sm={6} md={3}>
                     <Typography variant="body2" color="text.secondary">
                       Umidade Média
                     </Typography>
@@ -557,7 +615,7 @@ const PiCarXDashboard = () => {
                       {stats.avg_humidity?.toFixed(1)}%
                     </Typography>
                   </Grid>
-                  <Grid item xs={6} size={3}>
+                  <Grid item xs={12} sm={6} md={3}>
                     <Typography variant="body2" color="text.secondary">
                       Uptime
                     </Typography>

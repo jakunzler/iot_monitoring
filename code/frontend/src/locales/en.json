@@ -39,6 +39,13 @@
       "secondary": "Learn more",
       "documentation": "Architecture & UML documentation"
     },
+    "qr": {
+      "title": "Quick access to the system",
+      "subtitle": "Scan the QR code with your phone to open this IoT monitoring app.",
+      "copy": "Copy link",
+      "copied": "Link copied to the clipboard.",
+      "copyFailed": "Could not copy. Copy the address manually."
+    },
     "featureDescriptions": {
       "realtime": "Continuous monitoring with real-time updates",
       "wireless": "PiCarX: Quectel RM520N-GL as the primary path (5G), Wi-Fi as fallback. ESP32: Wi-Fi and LoRa as deployed.",

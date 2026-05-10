@@ -39,6 +39,13 @@
       "secondary": "Saiba mais",
       "documentation": "Arquitetura e documentação UML"
     },
+    "qr": {
+      "title": "Acesso rápido ao sistema",
+      "subtitle": "Aponte a câmara do smartphone para o código e acesse o monitoramento IoT no seu navegador.",
+      "copy": "Copiar endereço",
+      "copied": "Endereço copiado para a área de transferência.",
+      "copyFailed": "Não foi possível copiar. Copie o endereço manualmente."
+    },
     "featureDescriptions": {
       "realtime": "Monitoramento contínuo com atualizações em tempo real",
       "wireless": "PiCarX: Quectel RM520N-GL como meio principal (5G), Wi-Fi como fallback. ESP32: Wi-Fi e LoRa, conforme a montagem.",

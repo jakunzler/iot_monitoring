@@ -104,26 +104,45 @@ const DeviceSelector = ({ selectedDevice, onDeviceChange }) => {
                   value={device.id}
                   control={<Radio />}
                   label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'flex-start', sm: 'center' },
+                        gap: { xs: 1.5, sm: 2 },
+                        p: 1,
+                        width: '100%',
+                        minWidth: 0,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: 1,
+                          rowGap: 0.5,
+                        }}
+                      >
                         {device.icon}
-                        <Typography variant="h6">
+                        <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                           {device.name}
                         </Typography>
                         <Chip
                           label={device.technology}
                           color={device.color}
                           size="small"
+                          sx={{ maxWidth: '100%' }}
                         />
                       </Box>
-                      <Box sx={{ ml: 2 }}>
+                      <Box sx={{ ml: { xs: 0, sm: 2 }, minWidth: 0, width: '100%' }}>
                         <Typography variant="body2" color="text.secondary">
                           {device.description}
                         </Typography>
-                        <Box component="ul" sx={{ mt: 1, pl: 2, fontSize: '0.875rem' }}>
+                        <Box component="ul" sx={{ mt: 1, pl: 2, pr: 0, fontSize: '0.875rem', m: 0 }}>
                           {device.details.map((detail, index) => (
                             <li key={index}>
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>
                                 {detail}
                               </Typography>
                             </li>
@@ -151,9 +170,11 @@ const DeviceSelector = ({ selectedDevice, onDeviceChange }) => {
               onClick={handleNavigateToDashboard}
               disabled={!selectedDevice}
               sx={{
-                minWidth: 200,
+                width: { xs: '100%', sm: 'auto' },
+                minWidth: { xs: 0, sm: 200 },
+                maxWidth: { xs: 400, sm: 'none' },
                 py: 1.5,
-                fontSize: '1.1rem',
+                fontSize: { xs: '1rem', sm: '1.1rem' },
               }}
             >
               {t('deviceSelector.accessPanel')}
